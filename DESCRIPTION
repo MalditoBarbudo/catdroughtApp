@@ -11,4 +11,7 @@ Imports:
     shiny,
     shinyjs,
     pool,
-    RPostgreSQL
+    RPostgreSQL,
+    leaflet,
+    dygraphs
+RoxygenNote: 6.1.1
