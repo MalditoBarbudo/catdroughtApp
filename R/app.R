@@ -25,26 +25,7 @@ catdrought_app <- function(
   #   "Quercus suber", "Quercus humilis", "Quercus faginea", "Fagus sylvatica"
   # )
 
-  date_daily_choices <- seq(
-    # TODO fixed for 2019, we need to dinamically detect the year
-    lubridate::ymd('2019-01-01'), lubridate::ymd(Sys.Date()), by='days'
-  )
 
-  climate_vars <- c(
-    "Precipitation (mm)", "Potential evapo-transpiration (mm)"
-    # "SPEI (k=3)", "SPEI (k=6)", "SPEI (k=12)"
-  )
-  fwb_vars <- c(
-    "Net precipitation (mm)" = 'netprec', "LAI (m2/m2)" = 'lai',
-    "Plant transpiration (mm)", "Soil evaporation (mm)", "Run-off (mm)",
-    "Deep drainage (mm)"
-  )
-
-  ## TODO vars are not correct, fix it
-  soil_moisture_vars <- c(
-    "Relative extractable water [0-1]", "Soil moisture content (%)", "Soil water potential (-MPa)"
-  )
-  drought_stress_vars <- c("Stress intensity", "Stress duration")
 
   ### Language input ###########################################################
   shiny::addResourcePath(
@@ -94,82 +75,9 @@ catdrought_app <- function(
       # navbarPage contents
       shiny::tabPanel(
         title = 'Current',
-
-        shiny::sidebarLayout(
-          # sidebar
-          shiny::sidebarPanel(
-            width = 3,
-            ## variable selectors ####
-            # var type
-            shiny::selectInput(
-              'mode_daily', 'Variable type',
-              choices = c(
-                "Climate", "Forest water balance",
-                "Soil moisture", "Drought stress"
-              ),
-              selected = "Forest water balance"
-            ),
-            # var sel
-            shiny::selectInput(
-              'var_daily', 'Choose variable',
-              choices = ''
-            ),
-            # species sel
-            # shinyjs::hidden(
-            #   shiny::selectInput(
-            #     'sp_daily', 'Choose species',
-            #     choices = sp_daily_choices,
-            #     selected = sp_daily_choices[1]
-            #   )
-            # ),
-            # date sel
-            shiny::dateInput(
-              'date_daily', 'Date',
-              value = date_daily_choices,
-              min = date_daily_choices[1],
-              max = date_daily_choices[length(date_daily_choices)],
-              weekstart = 1, language = "ca"
-            ),
-            # polygon sel
-            shiny::selectInput(
-              'display_daily', 'Selection type',
-              choices = c('none', "Watersheds", "Counties", "Municipalities", "IFN plots"),
-              selected = 'none'
-            ),
-            # resoltion sel
-            shiny::radioButtons(
-              'resolution_daily', 'Raster res',
-              choices = c('Smoothed', '1km', '200m'),
-              selected = '200m'
-            ),
-
-            # download button
-            shiny::actionButton(
-              'download_raster_daily', 'Download raster'
-            )
-          ), # end of sidebar
-          # main panel
-          shiny::mainPanel(
-            shiny::tabsetPanel(
-
-              # map
-              shiny::tabPanel(
-                title = 'Map',
-                leaflet::leafletOutput('map_daily', height = 600) %>%
-                  shinyWidgets::addSpinner(spin = 'cube', color = '#26a65b')
-              ),
-
-              # series
-              shiny::tabPanel(
-                title = 'Series',
-                dygraphs::dygraphOutput('trends_daily'),
-                shiny::downloadButton(
-                  'donwload_series_daily', 'Download trend'
-                )
-              )
-            )
-          ) # end of main panel
-        )
+        # we need to create the ui in the server to catch the language input
+        # and redraw all the inputs and texts in the selected lang
+        shiny::uiOutput('current_ui')
       ) # end of current tab
     ) # end of navbar
   ) # end of UI
@@ -192,30 +100,114 @@ catdrought_app <- function(
       input$lang
     })
 
-    # observer to update var_daily
-    shiny::observe({
-      var_daily_choices <- switch(
-        input$mode_daily,
-        'Climate' = climate_vars,
-        'Forest water balance' = fwb_vars,
-        'Soil moisture' = soil_moisture_vars,
-        'Drought stress' = drought_stress_vars
+    ## proper UI ####
+    output$current_ui <- shiny::renderUI({
+
+      lang_declared <- lang()
+      dates_lang <- switch(
+        lang_declared,
+        'cat' = 'ca',
+        'spa' = 'es',
+        'eng' = 'en'
       )
-      shiny::updateSelectInput(
-        session, inputId = 'var_daily',
-        label = 'Choose variable', choices = var_daily_choices,
-        selected = var_daily_choices[1]
+
+      # browser()
+
+      ## choices
+
+      ####### correct way of doing it if we have all the dates
+      # date_daily_choices <- seq(
+      #   lubridate::ymd(Sys.Date() - 365), lubridate::ymd(Sys.Date() - 1),
+      #   by = 'days'
+      # )
+      ####### incorrect way of doing it, but working with the local sample of data I have
+      date_daily_choices <- seq(
+        lubridate::ymd("2019-01-01"), lubridate::ymd("2019-06-02")
+      )
+      ## TODO change to the correct way when available
+
+      climate_vars <- c("prec", "pet") %>%
+        magrittr::set_names(translate_app(., lang_declared))
+      fwb_vars <- c("netprec", "planttrans", "soilevap", "runoff", "deepdrainage") %>%
+        magrittr::set_names(translate_app(., lang_declared))
+      soil_moisture_vars <- c("rew", "smc", "swp") %>%
+        magrittr::set_names(translate_app(., lang_declared))
+      drought_stress_vars <- c("stressin", "stressdur") %>%
+        magrittr::set_names(translate_app(., lang_declared))
+
+      shiny::sidebarLayout(
+        # sidebar
+        shiny::sidebarPanel(
+          width = 3,
+          ## variable selectors ####
+          # var sel
+          shiny::selectInput(
+            'var_daily', 'Choose variable',
+            choices = list(
+              'Soil moisture' = soil_moisture_vars,
+              'Water balance' = fwb_vars,
+              'Climate' = climate_vars,
+              'Drought stress' = drought_stress_vars
+            ) %>% magrittr::set_names(translate_app(names(.), lang_declared))
+          ),
+
+          # date sel
+          shiny::dateInput(
+            'date_daily', 'Date',
+            value = date_daily_choices[length(date_daily_choices)],
+            min = date_daily_choices[1],
+            max = date_daily_choices[length(date_daily_choices)],
+            weekstart = 1, language = dates_lang,
+            # dates disabled for 2018, as the data is missing. This must be
+            # removed when we have all the year data available
+            datesdisabled = seq(
+              lubridate::ymd(date_daily_choices[1]), lubridate::ymd("2018-12-31"),
+              by = 'days'
+            )
+          ),
+          # polygon sel
+          shiny::selectInput(
+            'display_daily', 'Selection type',
+            choices = c('none', "Watersheds", "Counties", "Municipalities", "IFN plots") %>%
+              magrittr::set_names(translate_app(., lang_declared)),
+            selected = 'none'
+          ),
+          # resoltion sel
+          shiny::radioButtons(
+            'resolution_daily', 'Raster res',
+            choices = c('Smoothed', '1km', '200m') %>%
+              magrittr::set_names(translate_app(., lang_declared)),
+            selected = '200m'
+          ),
+
+          # download button
+          shiny::actionButton(
+            'download_raster_daily', 'Download raster'
+          )
+        ), # end of sidebar
+        # main panel
+        shiny::mainPanel(
+          shiny::tabsetPanel(
+
+            # map
+            shiny::tabPanel(
+              title = 'Map',
+              leaflet::leafletOutput('map_daily', height = 600) %>%
+                shinyWidgets::addSpinner(spin = 'cube', color = '#26a65b')
+            ),
+
+            # series
+            shiny::tabPanel(
+              title = 'Series',
+              dygraphs::dygraphOutput('trends_daily'),
+              shiny::downloadButton(
+                'donwload_series_daily', 'Download trend'
+              )
+            )
+          )
+        ) # end of main panel
       )
     })
-
-    # observer to show sp_daily
-    # shiny::observe({
-    #   if (!is.null(input$mode_daily) && input$mode_daily == 'Drought stress') {
-    #     shinyjs::show('sp_daily')
-    #   } else {
-    #     shinyjs::hide('sp_daily')
-    #   }
-    # })
 
     # reactive with the raster
     raster_selected_daily <- shiny::reactive({
@@ -228,12 +220,17 @@ catdrought_app <- function(
       # browser()
 
       # switch for transforming the date to band
+      ####### correct way of doing it if we have all the dates
+      # dates_avail <- seq(
+      #   lubridate::ymd(Sys.Date() - 365), lubridate::ymd(Sys.Date() - 1),
+      #   by = 'days'
+      # )
+      ####### incorrect way of doing it, but working for the local sample I have at the moment
       dates_avail <- seq(
-        lubridate::ymd('2019-01-01'), lubridate::ymd(Sys.Date()), by='days'
-      )
+        lubridate::ymd("2019-01-01"), lubridate::ymd("2019-06-02")
+      ) ## TODO change to the correct way when available
       band_sel <- which(input$date_daily == dates_avail)
       selected_var <- input$var_daily
-
 
       # raster intermediates
       temp_postgresql_conn <- pool::poolCheckout(catdrought_db)
@@ -310,7 +307,7 @@ catdrought_app <- function(
                         # magrittr::set_names(translate_app(., lang_declared))
                     ), #%>% magrittr::set_names(translate_app(names(.), lang_declared)),
                     selected = 'gpkg'
-                  ),
+                  )
                   # length options
                   # shiny::radioButtons(
                   #   'data_length', translate_app('data_length_label', lang_declared),

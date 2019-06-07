@@ -12,3 +12,24 @@ navbarPageWithInputs <- function(..., inputs) {
   )
   navbar
 }
+
+#' translate app function
+#'
+#' translate the app based on the lang selected
+translate_app <- function(id, lang) {
+
+  app_translations
+
+  id %>%
+    purrr::map_chr(
+      ~ app_translations %>%
+        dplyr::filter(text_id == .x) %>% {
+          data_filtered <- .
+          if (nrow(data_filtered) < 1) {
+            .x
+          } else {
+            dplyr::pull(data_filtered, !! rlang::sym(glue::glue("translation_{lang}")))
+          }
+        }
+    )
+}
