@@ -4,42 +4,45 @@
 #'
 #' @export
 catdrought_app <- function(
-  user = 'guest', password = 'guest',
+  user = 'ifn', password = 'IFN2018creaf',
   host = NULL, port = NULL, dbname = 'catdrought_db'
 ) {
 
   ### DB access ################################################################
-  # catdrought_db <- pool::dbPool(
-  #   RPostgreSQL::PostgreSQL(),
-  #   user = user,
-  #   password = password,
-  #   dbname = dbname,
-  #   host = host,
-  #   port = port
-  # )
-
-  ### Variables names inter ####################################################
-  sp_daily_choices <- c(
-    "All woody species", "Pinus halepensis", "Pinus nigra", "Pinus sylvestris",
-    "Pinus uncinata", "Pinus pinea", "Pinus pinaster", "Quercus ilex",
-    "Quercus suber", "Quercus humilis", "Quercus faginea", "Fagus sylvatica"
+  catdrought_db <- pool::dbPool(
+    RPostgreSQL::PostgreSQL(),
+    user = user,
+    password = password,
+    dbname = dbname,
+    host = host,
+    port = port
   )
 
-  date_daily_choices <- c(Sys.Date()-4, Sys.Date()-3, Sys.Date()-2, Sys.Date()-1, Sys.Date())
+  ### Variables names inter ####################################################
+  # sp_daily_choices <- c(
+  #   "All woody species", "Pinus halepensis", "Pinus nigra", "Pinus sylvestris",
+  #   "Pinus uncinata", "Pinus pinea", "Pinus pinaster", "Quercus ilex",
+  #   "Quercus suber", "Quercus humilis", "Quercus faginea", "Fagus sylvatica"
+  # )
+
+  date_daily_choices <- seq(
+    # TODO fixed for 2019, we need to dinamically detect the year
+    lubridate::ymd('2019-01-01'), lubridate::ymd(Sys.Date()), by='days'
+  )
 
   climate_vars <- c(
     "Precipitation (mm)", "Potential evapo-transpiration (mm)"
     # "SPEI (k=3)", "SPEI (k=6)", "SPEI (k=12)"
   )
   fwb_vars <- c(
-    "Net precipitation (mm)", "LAI (m2/m2)","Plant transpiration (mm)",
-    "Soil evaporation (mm)", "Run-off (mm)", "Deep drainage (mm)"
+    "Net precipitation (mm)" = 'netprec', "LAI (m2/m2)" = 'lai',
+    "Plant transpiration (mm)", "Soil evaporation (mm)", "Run-off (mm)",
+    "Deep drainage (mm)"
   )
+
+  ## TODO vars are not correct, fix it
   soil_moisture_vars <- c(
-    "Soil depth (cm)", "Water content at field capacity (mm)",
-    "Water content at wilting point (mm)"  ,"Water holding capacity (mm)",
-    "Topsoil texture type", "Subsoil texture type","Topsoil rock fragment content (%)",
-    "Subsoil rock fragment content (%)"
+    "Relative extractable water [0-1]", "Soil moisture content (%)", "Soil water potential (-MPa)"
   )
   drought_stress_vars <- c("Stress intensity", "Stress duration")
 
@@ -112,13 +115,13 @@ catdrought_app <- function(
               choices = ''
             ),
             # species sel
-            shinyjs::hidden(
-              shiny::selectInput(
-                'sp_daily', 'Choose species',
-                choices = sp_daily_choices,
-                selected = sp_daily_choices[1]
-              )
-            ),
+            # shinyjs::hidden(
+            #   shiny::selectInput(
+            #     'sp_daily', 'Choose species',
+            #     choices = sp_daily_choices,
+            #     selected = sp_daily_choices[1]
+            #   )
+            # ),
             # date sel
             shiny::dateInput(
               'date_daily', 'Date',
@@ -141,7 +144,7 @@ catdrought_app <- function(
             ),
 
             # download button
-            shiny::downloadButton(
+            shiny::actionButton(
               'download_raster_daily', 'Download raster'
             )
           ), # end of sidebar
@@ -152,7 +155,8 @@ catdrought_app <- function(
               # map
               shiny::tabPanel(
                 title = 'Map',
-                leaflet::leafletOutput('map_daily', height = 600)
+                leaflet::leafletOutput('map_daily', height = 600) %>%
+                  shinyWidgets::addSpinner(spin = 'cube', color = '#26a65b')
               ),
 
               # series
@@ -205,31 +209,179 @@ catdrought_app <- function(
     })
 
     # observer to show sp_daily
-    shiny::observe({
-      if (!is.null(input$mode_daily) && input$mode_daily == 'Drought stress') {
-        shinyjs::show('sp_daily')
-      } else {
-        shinyjs::hide('sp_daily')
-      }
-    })
+    # shiny::observe({
+    #   if (!is.null(input$mode_daily) && input$mode_daily == 'Drought stress') {
+    #     shinyjs::show('sp_daily')
+    #   } else {
+    #     shinyjs::hide('sp_daily')
+    #   }
+    # })
 
     # reactive with the raster
     raster_selected_daily <- shiny::reactive({
 
+      shiny::validate(
+        shiny::need(input$var_daily, 'No variable selected'),
+        shiny::need(input$date_daily, 'No date selected')
+      )
+
+      # browser()
+
       # switch for transforming the date to band
-      # HOW????
-      band_sel <- 1
+      dates_avail <- seq(
+        lubridate::ymd('2019-01-01'), lubridate::ymd(Sys.Date()), by='days'
+      )
+      band_sel <- which(input$date_daily == dates_avail)
+      selected_var <- input$var_daily
 
 
       # raster intermediates
       temp_postgresql_conn <- pool::poolCheckout(catdrought_db)
       raster_res <- rpostgis::pgGetRast(
-        temp_postgresql_conn, input$var_daily, bands = band_sel
+        temp_postgresql_conn, selected_var, bands = band_sel
       )
       pool::poolReturn(temp_postgresql_conn)
 
       return(raster_res)
     })
+
+    ## map output ####
+    output$map_daily <- leaflet::renderLeaflet({
+
+      raster_daily <- raster_selected_daily()
+
+      palette <- leaflet::colorNumeric(
+        viridis::plasma(100),
+        # raster::values(basal_area_raster),
+        raster::values(raster_daily),
+        na.color = 'transparent'
+      )
+
+      # browser()
+
+      leaflet::leaflet() %>%
+        leaflet::setView(1.744, 41.726, zoom = 8) %>%
+        leaflet::addProviderTiles(
+          leaflet::providers$Esri.WorldShadedRelief,
+          group = 'Relief'
+        ) %>%
+        leaflet::addProviderTiles(
+          leaflet::providers$Esri.WorldImagery,
+          group = 'Imagery'
+        ) %>%
+        leaflet::addLayersControl(
+          baseGroups = c('Relief', 'Imagery'),
+          overlayGroups = c('raster'),
+          options = leaflet::layersControlOptions(collapsed = FALSE, autoZIndex = FALSE)
+        ) %>%
+        leaflet::addRasterImage(
+          raster_daily, project = FALSE, group = 'raster',
+          colors = palette, opacity = 1
+        ) %>%
+        leaflet::addLegend(
+          pal = palette, values = raster::values(raster_daily),
+          title = input$var_daily, position = 'bottomright',
+          opacity = 1
+        )
+    })
+
+    ## download handler ####
+    # modal for saving the data
+    shiny::observeEvent(
+      eventExpr = input$download_raster_daily,
+      handlerExpr = {
+
+        lang_declared = lang()
+
+        shiny::showModal(
+          ui = shiny::modalDialog(
+            shiny::tagList(
+
+              shiny::fluidRow(
+                shiny::column(
+                  12,
+                  # format options
+                  shiny::selectInput(
+                    'data_format', 'format',#translate_app('data_format_label', lang_declared),
+                    choices = list(
+                      'GIS' = c('shp', 'wkt', 'gpkg'),# %>%
+                        # magrittr::set_names(translate_app(., lang_declared)),
+                      'TABLE' = c('csv', 'xlsx') #%>%
+                        # magrittr::set_names(translate_app(., lang_declared))
+                    ), #%>% magrittr::set_names(translate_app(names(.), lang_declared)),
+                    selected = 'gpkg'
+                  ),
+                  # length options
+                  # shiny::radioButtons(
+                  #   'data_length', translate_app('data_length_label', lang_declared),
+                  #   # text_translate('data_length', lang(), texts_thes),
+                  #   choices = c('visible', 'all_columns') %>%
+                  #     magrittr::set_names(translate_app(., lang_declared)),
+                  #   selected = 'visible', width = '100%'
+                  # )
+                )
+              )
+            ),
+            easyClose = TRUE,
+            footer = shiny::tagList(
+              # shiny::modalButton(translate_app('modal_dismiss_label', lang_declared)),
+              shiny::modalButton('dismiss'),
+              shiny::downloadButton(
+                'download_data_with_options',
+                label = 'download',#translate_app('sidebar_h4_download', lang_declared),
+                class = 'btn-success'
+              )
+            )
+          )
+        )
+      }
+    )
+
+    output$download_data_with_options <- shiny::downloadHandler(
+      filename = function() {
+
+        file_name <- switch(
+          input$data_format,
+          'shp' = 'catdrought_data.zip',
+          'wkt' = 'catdrought_data.csv',
+          'gpkg' = 'catdrought_data.gpkg',
+          'csv' = 'catdrought_data.csv',
+          'xlsx' = 'catdrought_data.xlsx'
+        )
+
+        return(file_name)
+      },
+      content = function(file) {
+
+        # data length
+        result_data <- raster_selected_daily()
+
+        # data format
+
+        # shapefile
+        if (input$data_format == 'shp') {
+
+        } else {
+          # well known text
+          if (input$data_format == 'wkt') {
+
+          } else {
+            # geopackage
+            if (input$data_format == 'gpkg') {
+
+            } else {
+              # csv text (no geometry)
+              if (input$data_format == 'csv') {
+
+              } else {
+                # xlsx (no geometry)
+
+              }
+            }
+          }
+        }
+      }
+    )
 
   } # end of server function
 
