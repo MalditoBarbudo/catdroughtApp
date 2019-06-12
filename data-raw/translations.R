@@ -103,4 +103,4 @@ tibble::tribble(
 ) %>%
   {.} -> app_translations
 
-usethis::use_data(app_translations, internal = TRUE, overwrite = TRUE)
+# usethis::use_data(app_translations, internal = TRUE, overwrite = TRUE)

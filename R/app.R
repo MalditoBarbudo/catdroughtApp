@@ -122,7 +122,7 @@ catdrought_app <- function(
       # )
       ####### incorrect way of doing it, but working with the local sample of data I have
       date_daily_choices <- seq(
-        lubridate::ymd("2019-01-01"), lubridate::ymd("2019-06-02")
+        lubridate::ymd("2019-01-01"), lubridate::ymd("2019-06-02"), by = 'days'
       )
       ## TODO change to the correct way when available
 
@@ -148,7 +148,8 @@ catdrought_app <- function(
               'Water balance' = fwb_vars,
               'Climate' = climate_vars,
               'Drought stress' = drought_stress_vars
-            ) %>% magrittr::set_names(translate_app(names(.), lang_declared))
+            ) %>% magrittr::set_names(translate_app(names(.), lang_declared)),
+            selected = 'netprec'
           ),
 
           # date sel
@@ -157,13 +158,13 @@ catdrought_app <- function(
             value = date_daily_choices[length(date_daily_choices)],
             min = date_daily_choices[1],
             max = date_daily_choices[length(date_daily_choices)],
-            weekstart = 1, language = dates_lang,
-            # dates disabled for 2018, as the data is missing. This must be
+            # TODO dates disabled for 2018, as the data is missing. This must be
             # removed when we have all the year data available
-            datesdisabled = seq(
-              lubridate::ymd(date_daily_choices[1]), lubridate::ymd("2018-12-31"),
-              by = 'days'
-            )
+            # datesdisabled = seq(
+            #   lubridate::ymd(date_daily_choices[1]), lubridate::ymd("2018-12-31"),
+            #   by = 'days'
+            # ),
+            weekstart = 1, language = dates_lang
           ),
           # polygon sel
           shiny::selectInput(
@@ -227,7 +228,7 @@ catdrought_app <- function(
       # )
       ####### incorrect way of doing it, but working for the local sample I have at the moment
       dates_avail <- seq(
-        lubridate::ymd("2019-01-01"), lubridate::ymd("2019-06-02")
+        lubridate::ymd("2019-01-01"), lubridate::ymd("2019-06-02"), by = 'days'
       ) ## TODO change to the correct way when available
       band_sel <- which(input$date_daily == dates_avail)
       selected_var <- input$var_daily
@@ -281,6 +282,42 @@ catdrought_app <- function(
           opacity = 1
         )
     })
+
+    ## series polygons observers ####
+
+    # draw polygons observer
+    shiny::observeEvent(
+      eventExpr = input$display_daily,
+      handlerExpr = {
+
+        shiny::validate(
+          shiny::need(input$display_daily, 'no polygon/plots selected')
+        )
+
+        if (input$display_daily == 'none') {
+          leaflet::leafletProxy('map_daily') %>%
+            leaflet::clearGroup('display_daily')
+          return()
+        }
+
+        # if plots do something, if polys do something else
+        if (input$display_daily == 'IFN plots') {
+          return()
+        } else {
+
+          polygon_object_name <- glue::glue("{tolower(input$display_daily)}_polygons")
+
+          leaflet::leafletProxy('map_daily') %>%
+            leaflet::clearGroup('display_daily') %>%
+            leaflet::addPolygons(
+              data = rlang::eval_tidy(rlang::sym(polygon_object_name)),
+              group = 'display_daily',
+              fillOpacity = 0, color = 'black', stroke = TRUE,
+              label = ~poly_id
+            )
+        }
+      }
+    )
 
     ## download handler ####
     # modal for saving the data
