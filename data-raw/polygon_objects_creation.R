@@ -1,3 +1,6 @@
+# polygons and nfi plots objects
+
+## polygons ####
 municipalities_polygons <- sf::read_sf('data-raw/shapefiles/bm5mv20sh0tpm1_20180101_0.shp') %>%
   rmapshaper::ms_simplify(0.01) %>%
   sf::st_transform('+proj=longlat +datum=WGS84') %>%
@@ -13,45 +16,35 @@ watersheds_polygons <- sf::read_sf('data-raw/shapefiles/Concajs.shp') %>%
   sf::st_transform('+proj=longlat +datum=WGS84') %>%
   dplyr::select(poly_id = CONCA, geometry)
 
-# veguerias_polygons <- sf::read_sf('data-raw/shapefiles/bm5mv20sh0tpv1_20180101_0.shp') %>%
-#   rmapshaper::ms_simplify(0.01) %>%
-#   sf::st_transform('+proj=longlat +datum=WGS84') %>%
-#   dplyr::select(admin_vegueria = NOMVEGUE, geometry)
-#
-# provinces_polygons <- sf::read_sf('data-raw/shapefiles/bm5mv20sh0tpp1_20180101_0.shp') %>%
-#   rmapshaper::ms_simplify(0.01) %>%
-#   sf::st_transform('+proj=longlat +datum=WGS84') %>%
-#   dplyr::select(admin_province = NOMPROV, geometry)
-#
-# catalonia_polygons <- sf::read_sf('data-raw/shapefiles/catalunya.shp') %>%
-#   rmapshaper::ms_simplify(0.01) %>%
-#   sf::st_transform('+proj=longlat +datum=WGS84') %>%
-#   dplyr::select(admin_aut_community = NOM_CA, geometry)
-#
-# # enpe_polygons
-# natural_interest_area_polygons <- sf::read_sf('data-raw/shapefiles/enpe_2017.shp') %>%
-#   rmapshaper::ms_simplify(0.01) %>%
-#   sf::st_transform('+proj=longlat +datum=WGS84') %>%
-#   dplyr::select(admin_natural_interest_area = nom, geometry)
-#
-# # pein_polygons
-# special_protection_natural_area_polygons <- sf::read_sf('data-raw/shapefiles/pein_2017.shp') %>%
-#   rmapshaper::ms_simplify(0.01) %>%
-#   sf::st_transform('+proj=longlat +datum=WGS84') %>%
-#   dplyr::select(admin_special_protection_natural_area = nom, geometry)
-#
-# # xn2000_polyogns
-# natura_network_2000_polygons <- sf::read_sf('data-raw/shapefiles/xn2000_2017.shp') %>%
-#   rmapshaper::ms_simplify(0.01) %>%
-#   sf::st_transform('+proj=longlat +datum=WGS84')%>%
-#   dplyr::select(admin_natura_network_2000 = nom_n2, geometry)
+## nfi plots ####
+nfidb <- tidyNFI::nfi_connect(
+  user = 'guest', password = 'guest', host = NULL, port = NULL, dbname = 'tururu'
+)
 
-# usethis::use_data(
-#   municipalities_polygons, regions_polygons, watersheds_polygons,
-#   # veguerias_polygons, provinces_polygons,
-#   # catalonia_polygons, natural_interest_area_polygons,
-#   # special_protection_natural_area_polygons, natura_network_2000_polygons,
-#
-#
-#   internal = TRUE, overwrite = TRUE
-# )
+nfi4_plots <- dplyr::tbl(nfidb, 'PLOTS') %>%
+  dplyr::select(
+    plot_id, coords_longitude, coords_latitude, presence_NFI_4
+  ) %>%
+  dplyr::filter(
+    presence_NFI_4
+  ) %>%
+  dplyr::collect() %>%
+  sf::st_as_sf(
+    coords = c('coords_longitude', 'coords_latitude'),
+    crs = '+proj=longlat +datum=WGS84'
+  )
+
+nfi3_plots <- dplyr::tbl(nfidb, 'PLOTS') %>%
+  dplyr::select(
+    plot_id, coords_longitude, coords_latitude, presence_NFI_3
+  ) %>%
+  dplyr::filter(
+    presence_NFI_3
+  ) %>%
+  dplyr::collect() %>%
+  sf::st_as_sf(
+    coords = c('coords_longitude', 'coords_latitude'),
+    crs = '+proj=longlat +datum=WGS84'
+  )
+
+tidyNFI::nfi_close(nfidb)

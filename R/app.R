@@ -302,7 +302,14 @@ catdrought_app <- function(
 
         # if plots do something, if polys do something else
         if (input$display_daily == 'IFN plots') {
-          return()
+          leaflet::leafletProxy('map_daily') %>%
+            leaflet::clearGroup('display_daily') %>%
+            leaflet::addCircleMarkers(
+              data = nfi4_plots,
+              group = 'display_daily',
+              label = ~plot_id,
+              clusterOptions = leaflet::markerClusterOptions()
+            )
         } else {
 
           polygon_object_name <- glue::glue("{tolower(input$display_daily)}_polygons")
