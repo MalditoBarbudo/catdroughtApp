@@ -148,8 +148,7 @@ catdrought_app <- function(
               'Water balance' = fwb_vars,
               'Climate' = climate_vars,
               'Drought stress' = drought_stress_vars
-            ) %>% magrittr::set_names(translate_app(names(.), lang_declared)),
-            selected = 'netprec'
+            ) %>% magrittr::set_names(translate_app(names(.), lang_declared))
           ),
 
           # date sel
@@ -300,7 +299,7 @@ catdrought_app <- function(
           return()
         }
 
-        # if plots do something, if polys do something else
+        # if plots do markers, if polys do polygons
         if (input$display_daily == 'IFN plots') {
           leaflet::leafletProxy('map_daily') %>%
             leaflet::clearGroup('display_daily') %>%
