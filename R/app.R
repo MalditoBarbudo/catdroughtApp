@@ -126,13 +126,13 @@ catdrought_app <- function(
       )
       ## TODO change to the correct way when available
 
-      climate_vars <- c("prec", "pet") %>%
+      climate_vars <- c("Rain", "PET") %>%
         magrittr::set_names(translate_app(., lang_declared))
-      fwb_vars <- c("netprec", "planttrans", "soilevap", "runoff", "deepdrainage") %>%
+      fwb_vars <- c("NetPrec", "Eplant", "Esoil", "Runoff", "DeepDrainage") %>%
         magrittr::set_names(translate_app(., lang_declared))
-      soil_moisture_vars <- c("rew", "smc", "swp") %>%
+      soil_moisture_vars <- c("REW", "Theta", "Psi") %>%
         magrittr::set_names(translate_app(., lang_declared))
-      drought_stress_vars <- c("stressin", "stressdur") %>%
+      drought_stress_vars <- c("DDS", "NDD") %>%
         magrittr::set_names(translate_app(., lang_declared))
 
       shiny::sidebarLayout(
@@ -209,15 +209,49 @@ catdrought_app <- function(
       )
     })
 
-    # reactive with the raster
+    # data reactive with the raster ####
     raster_selected_daily <- shiny::reactive({
 
       shiny::validate(
         shiny::need(input$var_daily, 'No variable selected'),
         shiny::need(input$date_daily, 'No date selected')
       )
-
       # browser()
+
+      date_sel <- input$date_daily
+      date_sel_parsed <- stringr::str_remove_all(date_sel, pattern = '-')
+
+      band_sel <- switch(
+        input$var_daily,
+        "DeepDrainage" = 1,
+        "Eplant" = 2,
+        "Esoil" = 3,
+        "LAI" = 4,
+        "NetPrec" = 5,
+        "PET" = 6,
+        "Psi" = 7,
+        "Rain" = 8,
+        "REW" = 9,
+        "Runoff" = 10,
+        "Theta" = 11,
+        "DDS" = 12,
+        "NDD" = 13
+      )
+
+      # table name
+      table_name <- glue::glue(
+        "catdrought_{date_sel_parsed}"
+      )
+
+      # temp conn and raster getter
+      temp_postgresql_conn <- pool::poolCheckout(catdrought_db)
+      raster_res <- rpostgis::pgGetRast(
+        temp_postgresql_conn, name = c('daily', table_name), bands = band_sel
+      )
+      pool::poolReturn(temp_postgresql_conn)
+
+      return(raster_res)
+
 
       # switch for transforming the date to band
       ####### correct way of doing it if we have all the dates
@@ -226,20 +260,20 @@ catdrought_app <- function(
       #   by = 'days'
       # )
       ####### incorrect way of doing it, but working for the local sample I have at the moment
-      dates_avail <- seq(
-        lubridate::ymd("2019-01-01"), lubridate::ymd("2019-06-02"), by = 'days'
-      ) ## TODO change to the correct way when available
-      band_sel <- which(input$date_daily == dates_avail)
-      selected_var <- input$var_daily
-
-      # raster intermediates
-      temp_postgresql_conn <- pool::poolCheckout(catdrought_db)
-      raster_res <- rpostgis::pgGetRast(
-        temp_postgresql_conn, selected_var, bands = band_sel
-      )
-      pool::poolReturn(temp_postgresql_conn)
-
-      return(raster_res)
+      # dates_avail <- seq(
+      #   lubridate::ymd("2019-01-01"), lubridate::ymd("2019-06-02"), by = 'days'
+      # ) ## TODO change to the correct way when available
+      # band_sel <- which(input$date_daily == dates_avail)
+      # selected_var <- input$var_daily
+      #
+      # # raster intermediates
+      # temp_postgresql_conn <- pool::poolCheckout(catdrought_db)
+      # raster_res <- rpostgis::pgGetRast(
+      #   temp_postgresql_conn, selected_var, bands = band_sel
+      # )
+      # pool::poolReturn(temp_postgresql_conn)
+      #
+      # return(raster_res)
     })
 
     ## map output ####
@@ -277,7 +311,9 @@ catdrought_app <- function(
         ) %>%
         leaflet::addLegend(
           pal = palette, values = raster::values(raster_daily),
-          title = input$var_daily, position = 'bottomright',
+          title =
+            input$var_daily,
+          position = 'bottomright',
           opacity = 1
         )
     })
