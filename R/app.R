@@ -85,9 +85,9 @@ catdrought_app <- function(
   ## SERVER ####
   server <- function(input, output, session) {
     ## debug #####
-    # output$debug1 <- shiny::renderPrint({
-    #   input$raster_map_shape_click
-    # })
+    output$debug1 <- shiny::renderPrint({
+      input$map_daily_shape_click
+    })
     # output$debug2 <- shiny::renderPrint({
     #   map_reactives$map_click
     # })
@@ -187,7 +187,23 @@ catdrought_app <- function(
         ), # end of sidebar
         # main panel
         shiny::mainPanel(
+
+          ########################################################### debug ####
+          shiny::absolutePanel(
+            id = 'debug', class = 'panel panel-default', fixed = TRUE,
+            draggable = TRUE, width = 640, height = 'auto',
+            # top = 100, left = 100, rigth = 'auto', bottom = 'auto',
+            # top = 'auto', left = 'auto', right = 100, bottom = 100,
+            top = 60, left = 'auto', right = 50, bottom = 'auto',
+
+            shiny::textOutput('debug1'),
+            shiny::textOutput('debug2'),
+            shiny::textOutput('debug3')
+          ),
+          ####################################################### end debug ####
+
           shiny::tabsetPanel(
+            id = 'daily_main_panel',
 
             # map
             shiny::tabPanel(
@@ -199,7 +215,8 @@ catdrought_app <- function(
             # series
             shiny::tabPanel(
               title = 'Series',
-              dygraphs::dygraphOutput('trends_daily'),
+              dygraphs::dygraphOutput('trends_daily') %>%
+                shinyWidgets::addSpinner(spin = 'cube', color = '#26a65b'),
               shiny::downloadButton(
                 'donwload_series_daily', 'Download trend'
               )
@@ -223,19 +240,19 @@ catdrought_app <- function(
 
       band_sel <- switch(
         input$var_daily,
-        "DeepDrainage" = 1,
-        "Eplant" = 2,
-        "Esoil" = 3,
-        "LAI" = 4,
-        "NetPrec" = 5,
-        "PET" = 6,
-        "Psi" = 7,
-        "Rain" = 8,
-        "REW" = 9,
-        "Runoff" = 10,
-        "Theta" = 11,
-        "DDS" = 12,
-        "NDD" = 13
+        "DeepDrainage" = 3,
+        "Eplant" = 4,
+        "Esoil" = 5,
+        "LAI" = 6,
+        "NetPrec" = 7,
+        "PET" = 8,
+        "Psi" = 9,
+        "Rain" = 10,
+        "REW" = 11,
+        "Runoff" = 12,
+        "Theta" = 13,
+        "DDS" = 2,
+        "NDD" = 1
       )
 
       # table name
@@ -355,11 +372,100 @@ catdrought_app <- function(
               data = rlang::eval_tidy(rlang::sym(polygon_object_name)),
               group = 'display_daily',
               fillOpacity = 0, color = 'black', stroke = TRUE,
-              label = ~poly_id
+              label = ~poly_id, layerId = ~poly_id
             )
         }
       }
     )
+
+    # clicked polygon reactive. returns the polygon selected
+    clicked_poly <- shiny::reactive({
+
+      shiny::validate(
+        shiny::need(input$map_daily_shape_click, 'no click on map')
+      )
+
+      # browser()
+
+      clicked_poly <- input$map_daily_shape_click
+      polygon_object <- rlang::eval_tidy(
+        rlang::sym(glue::glue("{tolower(input$display_daily)}_polygons"))
+      ) %>%
+        dplyr::filter(
+          poly_id == clicked_poly$id
+        ) %>%
+        dplyr::pull(geometry) %>%
+        sf::st_as_text()
+
+      return(polygon_object)
+    })
+
+    # time series data
+    series_data_for_polys <- shiny::reactive({
+
+      # polygon
+      polygon_sel <- clicked_poly()
+
+      # band
+      band_sel <- switch(
+        input$var_daily,
+        "DeepDrainage" = 3,
+        "Eplant" = 4,
+        "Esoil" = 5,
+        "LAI" = 6,
+        "NetPrec" = 7,
+        "PET" = 8,
+        "Psi" = 9,
+        "Rain" = 10,
+        "REW" = 11,
+        "Runoff" = 12,
+        "Theta" = 13,
+        "DDS" = 2,
+        "NDD" = 1
+      )
+
+      # data query to get the dump of the data
+      data_query <- glue::glue(
+        "
+          with
+          feat as (select st_geomfromtext('{polygon_sel}', 4326) as geom),
+          b_stats as (select day, (stats).* from (select day, ST_SummaryStats(st_clip(rast, {band_sel}, geom, true)) as stats
+            from daily.catdrought
+            inner join feat
+            on st_intersects(feat.geom,rast)
+          ) as foo
+          )
+          select day, sum(mean*count)/sum(count) as avg_pval from b_stats
+          where count > 0
+          group by day;
+        "
+      )
+
+      res <- pool::dbGetQuery(catdrought_db, data_query)
+
+      return(res)
+
+    })
+
+    ## series output
+    output$trends_daily <- dygraphs::renderDygraph({
+
+      plot_data <- series_data_for_polys()
+
+      plot_data %>%
+        dplyr::select(avg_pval) %>%
+        xts::as.xts(order.by = plot_data$day) %>%
+        dygraphs::dygraph()
+    })
+
+    ## observer to change the active tab
+    shiny::observeEvent(
+      eventExpr = input$map_daily_shape_click,
+      handlerExpr = {
+        shiny::updateTabsetPanel(session, 'daily_main_panel', selected = 'Series')
+      }
+    )
+
 
     ## download handler ####
     # modal for saving the data
