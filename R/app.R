@@ -217,7 +217,7 @@ catdrought_app <- function(
               title = 'Series',
               dygraphs::dygraphOutput('trends_daily'),
               shiny::downloadButton(
-                'donwload_series_daily', 'Download trend'
+                'download_series_daily', 'Download trend'
               )
             )
           )
@@ -533,8 +533,8 @@ catdrought_app <- function(
     )
 
 
-    ## download handler ####
-    # modal for saving the data
+    ## download handlers ####
+    # modal for saving the raster data
     shiny::observeEvent(
       eventExpr = input$download_raster_daily,
       handlerExpr = {
@@ -582,6 +582,20 @@ catdrought_app <- function(
         )
       }
     )
+
+    # download logic for series data
+    output$download_series_daily <- shiny::downloadHandler(
+      filename = function() {
+        file_name <- glue::glue(
+          'catdrought_series_for_{input$map_daily_shape_click$id}.csv'
+        )
+      },
+      content = function(file) {
+        series_data_for_polys() %>%
+          readr::write_csv(path = file)
+      }
+    )
+
 
     output$download_data_with_options <- shiny::downloadHandler(
       filename = function() {
