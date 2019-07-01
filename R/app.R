@@ -349,45 +349,46 @@ catdrought_app <- function(
     ## series polygons observers ####
 
     # draw polygons observer
-    shiny::observeEvent(
-      eventExpr = input$display_daily,
-      handlerExpr = {
+    shiny::observe({
 
-        shiny::validate(
-          shiny::need(input$display_daily, 'no polygon/plots selected')
-        )
+      shiny::validate(
+        shiny::need(input$display_daily, 'no polygon/plots selected'),
+        shiny::need(input$var_daily, 'no var selected')
+      )
 
-        if (input$display_daily == 'none') {
-          leaflet::leafletProxy('map_daily') %>%
-            leaflet::clearGroup('display_daily')
-          return()
-        }
+      var_dummy <- input$var_daily
 
-        # if plots do markers, if polys do polygons
-        if (input$display_daily == 'IFN plots') {
-          leaflet::leafletProxy('map_daily') %>%
-            leaflet::clearGroup('display_daily') %>%
-            leaflet::addCircleMarkers(
-              data = nfi4_plots,
-              group = 'display_daily',
-              label = ~plot_id,
-              clusterOptions = leaflet::markerClusterOptions()
-            )
-        } else {
-
-          polygon_object_name <- glue::glue("{tolower(input$display_daily)}_polygons")
-
-          leaflet::leafletProxy('map_daily') %>%
-            leaflet::clearGroup('display_daily') %>%
-            leaflet::addPolygons(
-              data = rlang::eval_tidy(rlang::sym(polygon_object_name)),
-              group = 'display_daily',
-              fillOpacity = 0, color = 'black', stroke = TRUE,
-              label = ~poly_id, layerId = ~poly_id
-            )
-        }
+      if (input$display_daily == 'none') {
+        leaflet::leafletProxy('map_daily') %>%
+          leaflet::clearGroup('display_daily')
+        return()
       }
-    )
+
+      # if plots do markers, if polys do polygons
+      if (input$display_daily == 'IFN plots') {
+        leaflet::leafletProxy('map_daily') %>%
+          leaflet::clearGroup('display_daily') %>%
+          leaflet::addCircleMarkers(
+            data = nfi4_plots,
+            group = 'display_daily',
+            label = ~plot_id,
+            clusterOptions = leaflet::markerClusterOptions()
+          )
+      } else {
+
+        polygon_object_name <- glue::glue("{tolower(input$display_daily)}_polygons")
+
+        leaflet::leafletProxy('map_daily') %>%
+          leaflet::clearGroup('display_daily') %>%
+          leaflet::addPolygons(
+            data = rlang::eval_tidy(rlang::sym(polygon_object_name)),
+            group = 'display_daily',
+            fillOpacity = 0, color = 'black', stroke = TRUE,
+            label = ~poly_id, layerId = ~poly_id
+          )
+      }
+
+    })
 
     # clicked polygon reactive. returns the polygon selected
     clicked_poly <- shiny::reactive({
