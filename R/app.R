@@ -177,7 +177,7 @@ catdrought_app <- function(
             'resolution_daily', 'Raster res',
             choices = c('Smoothed', '1km', '200m') %>%
               magrittr::set_names(translate_app(., lang_declared)),
-            selected = '200m'
+            selected = 'Smoothed'
           ),
 
           # download button
@@ -435,13 +435,28 @@ catdrought_app <- function(
         "NDD" = 1
       )
 
+      # resolution
+      resolution_sel <- switch(
+        input$resolution_daily,
+        'Smoothed' = 'smooth',
+        '1km' = 'low',
+        '200m' = 'high'
+      )
+
+      # table name
+      table_name <- glue::glue(
+        "daily.catdrought_{resolution_sel}"
+      )
+
+
+
       # data query to get the dump of the data
       data_query <- glue::glue(
         "
           with
           feat as (select st_geomfromtext('{polygon_sel}', 4326) as geom),
           b_stats as (select day, (stats).* from (select day, ST_SummaryStats(st_clip(rast, {band_sel}, geom, true)) as stats
-            from daily.catdrought
+            from {table_name}
             inner join feat
             on st_intersects(feat.geom,rast)
           ) as foo
