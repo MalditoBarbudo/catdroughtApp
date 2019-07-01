@@ -3,17 +3,17 @@
 ## polygons ####
 municipalities_polygons <- sf::read_sf('data-raw/shapefiles/bm5mv20sh0tpm1_20180101_0.shp') %>%
   rmapshaper::ms_simplify(0.01) %>%
-  sf::st_transform('+proj=longlat +datum=WGS84') %>%
+  sf::st_transform(4326) %>%
   dplyr::select(poly_id = NOMMUNI, geometry)
 
 counties_polygons <- sf::read_sf('data-raw/shapefiles/bm5mv20sh0tpc1_20180101_0.shp') %>%
   rmapshaper::ms_simplify(0.01) %>%
-  sf::st_transform('+proj=longlat +datum=WGS84') %>%
+  sf::st_transform(4326) %>%
   dplyr::select(poly_id = NOMCOMAR, geometry)
 
 watersheds_polygons <- sf::read_sf('data-raw/shapefiles/Concajs.shp') %>%
   # rmapshaper::ms_simplify(0.01) %>%
-  sf::st_transform('+proj=longlat +datum=WGS84') %>%
+  sf::st_transform(4326) %>%
   dplyr::select(poly_id = CONCA, geometry)
 
 ## nfi plots ####
