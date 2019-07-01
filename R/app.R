@@ -383,8 +383,15 @@ catdrought_app <- function(
           leaflet::addPolygons(
             data = rlang::eval_tidy(rlang::sym(polygon_object_name)),
             group = 'display_daily',
-            fillOpacity = 0, color = 'black', stroke = TRUE,
-            label = ~poly_id, layerId = ~poly_id
+            label = ~poly_id, layerId = ~poly_id,
+            weight = 1, smoothFactor = 1,
+            opacity = 1.0, fill = TRUE, fillOpacity = 0,
+            color = '#6C7A89FF',
+            highlightOptions = leaflet::highlightOptions(
+              color = "#CF000F", weight = 2,
+              bringToFront = TRUE,
+              fill = TRUE, fillOpacity = 0
+            )
           )
       }
 
