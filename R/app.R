@@ -552,12 +552,10 @@ catdrought_app <- function(
                   shiny::selectInput(
                     'data_format', 'format',#translate_app('data_format_label', lang_declared),
                     choices = list(
-                      'GIS' = c('shp', 'wkt', 'gpkg'),# %>%
+                      'GIS' = c('gtiff', 'gpkg')# %>%
                         # magrittr::set_names(translate_app(., lang_declared)),
-                      'TABLE' = c('csv', 'xlsx') #%>%
-                        # magrittr::set_names(translate_app(., lang_declared))
-                    ), #%>% magrittr::set_names(translate_app(names(.), lang_declared)),
-                    selected = 'gpkg'
+                    ),
+                    selected = 'gtiff'
                   )
                   # length options
                   # shiny::radioButtons(
@@ -590,11 +588,8 @@ catdrought_app <- function(
 
         file_name <- switch(
           input$data_format,
-          'shp' = 'catdrought_data.zip',
-          'wkt' = 'catdrought_data.csv',
-          'gpkg' = 'catdrought_data.gpkg',
-          'csv' = 'catdrought_data.csv',
-          'xlsx' = 'catdrought_data.xlsx'
+          'gtiff' = 'catdrought_data.tif',
+          'gpkg' = 'catdrought_data.gpkg'
         )
 
         return(file_name)
@@ -607,25 +602,18 @@ catdrought_app <- function(
         # data format
 
         # shapefile
-        if (input$data_format == 'shp') {
-
+        if (input$data_format == 'gtiff') {
+          raster::writeRaster(
+            result_data, filename = file,
+            format = 'GTiff', overwrite = TRUE
+          )
         } else {
-          # well known text
-          if (input$data_format == 'wkt') {
-
-          } else {
-            # geopackage
-            if (input$data_format == 'gpkg') {
-
-            } else {
-              # csv text (no geometry)
-              if (input$data_format == 'csv') {
-
-              } else {
-                # xlsx (no geometry)
-
-              }
-            }
+          # geopackage
+          if (input$data_format == 'gpkg') {
+            raster::writeRaster(
+              result_data, filename = file,
+              format = 'GPKG'
+            )
           }
         }
       }
