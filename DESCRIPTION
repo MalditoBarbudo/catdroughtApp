@@ -13,5 +13,6 @@ Imports:
     pool,
     RPostgreSQL,
     leaflet,
-    dygraphs
+    dygraphs,
+    xts
 RoxygenNote: 6.1.1

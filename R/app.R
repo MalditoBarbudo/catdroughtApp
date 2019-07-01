@@ -154,7 +154,7 @@ catdrought_app <- function(
           # date sel
           shiny::dateInput(
             'date_daily', 'Date',
-            value = date_daily_choices[length(date_daily_choices)],
+            value = date_daily_choices[1],
             min = date_daily_choices[1],
             max = date_daily_choices[length(date_daily_choices)],
             # TODO dates disabled for 2018, as the data is missing. This must be
@@ -215,8 +215,7 @@ catdrought_app <- function(
             # series
             shiny::tabPanel(
               title = 'Series',
-              dygraphs::dygraphOutput('trends_daily') %>%
-                shinyWidgets::addSpinner(spin = 'cube', color = '#26a65b'),
+              dygraphs::dygraphOutput('trends_daily'),
               shiny::downloadButton(
                 'donwload_series_daily', 'Download trend'
               )
@@ -231,13 +230,16 @@ catdrought_app <- function(
 
       shiny::validate(
         shiny::need(input$var_daily, 'No variable selected'),
-        shiny::need(input$date_daily, 'No date selected')
+        shiny::need(input$date_daily, 'No date selected'),
+        shiny::need(input$resolution_daily, 'No resolution selected')
       )
       # browser()
 
+      # date
       date_sel <- input$date_daily
       date_sel_parsed <- stringr::str_remove_all(date_sel, pattern = '-')
 
+      # band
       band_sel <- switch(
         input$var_daily,
         "DeepDrainage" = 3,
@@ -255,12 +257,21 @@ catdrought_app <- function(
         "NDD" = 1
       )
 
+      # resolution
+      resolution_sel <- switch(
+        input$resolution_daily,
+        'Smoothed' = 'smooth',
+        '1km' = 'low',
+        '200m' = 'high'
+      )
+
       # table name
       table_name <- glue::glue(
-        "catdrought_{date_sel_parsed}"
+        "catdrought_{resolution_sel}_{date_sel_parsed}"
       )
 
       # temp conn and raster getter
+      # browser()
       temp_postgresql_conn <- pool::poolCheckout(catdrought_db)
       raster_res <- rpostgis::pgGetRast(
         temp_postgresql_conn, name = c('daily', table_name), bands = band_sel
@@ -447,22 +458,54 @@ catdrought_app <- function(
 
     })
 
-    ## series output
+    ## series output ####
     output$trends_daily <- dygraphs::renderDygraph({
 
-      plot_data <- series_data_for_polys()
+      # polygon id
+      poly_id <- input$map_daily_shape_click$id
+      # variable
+      var_id <- input$var_daily
 
+      # data and plot
+      plot_data <- series_data_for_polys()
       plot_data %>%
         dplyr::select(avg_pval) %>%
         xts::as.xts(order.by = plot_data$day) %>%
-        dygraphs::dygraph()
+        dygraphs::dygraph(
+          main = glue::glue("{var_id} - {poly_id}"),
+          ylab = glue::glue("{var_id}")
+        )
     })
 
     ## observer to change the active tab
     shiny::observeEvent(
       eventExpr = input$map_daily_shape_click,
       handlerExpr = {
+
+        # go to series
         shiny::updateTabsetPanel(session, 'daily_main_panel', selected = 'Series')
+
+        # modal waiting time
+        shiny::showModal(
+          ui = shiny::modalDialog(
+            shiny::tagList(
+
+              shiny::fluidRow(
+                shiny::column(
+                  12,
+                  shiny::p(
+                    "Extracting all values for the selected area. This can take a while (30 ~ 60 secs)"
+                  )
+                )
+              )
+            ),
+            easyClose = TRUE,
+            footer = shiny::tagList(
+              # shiny::modalButton(translate_app('modal_dismiss_label', lang_declared)),
+              shiny::modalButton('dismiss')
+            )
+          )
+        )
       }
     )
 
