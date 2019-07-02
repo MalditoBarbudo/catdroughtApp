@@ -482,23 +482,106 @@ catdrought_app <- function(
 
     })
 
+    ## series pixel observers ####
+    series_data_for_pixel <- shiny::reactive({
+
+      shiny::validate(
+        shiny::need(input$map_daily_click, 'no map click'),
+        shiny::need(input$display_daily == 'none', 'polygons_selected'),
+        shiny::need(input$var_daily, 'no var selected'),
+        shiny::need(input$resolution_daily, 'no resolution selected')
+      )
+
+      # band
+      band_sel <- switch(
+        input$var_daily,
+        "DeepDrainage" = 3,
+        "Eplant" = 4,
+        "Esoil" = 5,
+        "LAI" = 6,
+        "NetPrec" = 7,
+        "PET" = 8,
+        "Psi" = 9,
+        "Rain" = 10,
+        "REW" = 11,
+        "Runoff" = 12,
+        "Theta" = 13,
+        "DDS" = 2,
+        "NDD" = 1
+      )
+
+      # resolution
+      resolution_sel <- switch(
+        input$resolution_daily,
+        'Smoothed' = 'smooth',
+        '1km' = 'low',
+        '200m' = 'high'
+      )
+
+      # table name
+      table_name <- glue::glue(
+        "daily.catdrought_{resolution_sel}"
+      )
+
+      clicked_pixel <- input$map_daily_click
+
+      pixel_query <- glue::glue(
+        "
+          SELECT day, ST_Value(
+            rast,
+            {band_sel},
+            ST_Transform(ST_SetSRID(ST_Makepoint({clicked_pixel$lng},{clicked_pixel$lat}),4326),3043)
+          ) As pixel_value
+          FROM {table_name}
+          WHERE ST_Intersects(
+            rast,
+            ST_Transform(ST_SetSRID(ST_Makepoint({clicked_pixel$lng},{clicked_pixel$lat}),4326),3043)
+          )
+        "
+      )
+
+      res <- pool::dbGetQuery(catdrought_db, pixel_query)
+      return(res)
+
+    })
+
+
     ## series output ####
     output$trends_daily <- dygraphs::renderDygraph({
 
-      # polygon id
-      poly_id <- input$map_daily_shape_click$id
       # variable
       var_id <- input$var_daily
 
-      # data and plot
-      plot_data <- series_data_for_polys()
-      plot_data %>%
-        dplyr::select(avg_pval) %>%
-        xts::as.xts(order.by = plot_data$day) %>%
-        dygraphs::dygraph(
-          main = glue::glue("{translate_app(var_id, lang())} - {poly_id}"),
-          ylab = glue::glue("{translate_app(var_id, lang())}")
-        )
+      # here we have to check if poly or pixel
+      if (input$display_daily != 'none') {
+        # polygon id
+        poly_id <- input$map_daily_shape_click$id
+
+        # data and plot
+        plot_data <- series_data_for_polys()
+        res <- plot_data %>%
+          dplyr::select(avg_pval) %>%
+          xts::as.xts(order.by = plot_data$day) %>%
+          dygraphs::dygraph(
+            main = glue::glue("{translate_app(var_id, lang())} - {poly_id}"),
+            ylab = glue::glue("{translate_app(var_id, lang())}")
+          )
+      } else {
+        # click
+        clicked_pixel <- input(map_daily_click)
+
+        # data and plot
+        plot_data <- series_data_for_pixel()
+        res <- plot_data %>%
+          dplyr::select(pixel_value) %>%
+          xts::as.xts(order.by = plot_data$day) %>%
+          dygraphs::dygraph(
+            main = glue::glue("{translate_app(var_id, lang())} - pixel at [{round(clicked_pixel$long, 3)}, {round(clicked_pixel$lat, 3)}]"),
+            ylab = glue::glue("{translate_app(var_id, lang())}")
+          )
+      }
+
+
     })
 
     ## observer to change the active tab
