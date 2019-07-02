@@ -142,7 +142,7 @@ catdrought_app <- function(
           ## variable selectors ####
           # var sel
           shiny::selectInput(
-            'var_daily', 'Choose variable',
+            'var_daily', translate_app('var_daily_label', lang_declared),
             choices = list(
               'Soil moisture' = soil_moisture_vars,
               'Water balance' = fwb_vars,
@@ -153,7 +153,7 @@ catdrought_app <- function(
 
           # date sel
           shiny::dateInput(
-            'date_daily', 'Date',
+            'date_daily', translate_app('date_daily_label', lang_declared),
             value = date_daily_choices[1],
             min = date_daily_choices[1],
             max = date_daily_choices[length(date_daily_choices)],
@@ -167,14 +167,14 @@ catdrought_app <- function(
           ),
           # polygon sel
           shiny::selectInput(
-            'display_daily', 'Selection type',
+            'display_daily', translate_app('display_daily_label', lang_declared),
             choices = c('none', "Watersheds", "Counties", "Municipalities", "IFN plots") %>%
               magrittr::set_names(translate_app(., lang_declared)),
             selected = 'none'
           ),
           # resoltion sel
           shiny::radioButtons(
-            'resolution_daily', 'Raster res',
+            'resolution_daily', translate_app('resolution_daily_label', lang_declared),
             choices = c('Smoothed', '1km', '200m') %>%
               magrittr::set_names(translate_app(., lang_declared)),
             selected = 'Smoothed'
@@ -182,7 +182,7 @@ catdrought_app <- function(
 
           # download button
           shiny::actionButton(
-            'download_raster_daily', 'Download raster'
+            'download_raster_daily', translate_app('download_raster_label', lang_declared)
           )
         ), # end of sidebar
         # main panel
@@ -207,17 +207,18 @@ catdrought_app <- function(
 
             # map
             shiny::tabPanel(
-              title = 'Map',
+              title = translate_app('map_tab_label', lang_declared),
               leaflet::leafletOutput('map_daily', height = 600) %>%
                 shinyWidgets::addSpinner(spin = 'cube', color = '#26a65b')
             ),
 
             # series
             shiny::tabPanel(
-              title = 'Series',
+              title = translate_app('series_tab_label', lang_declared),
               dygraphs::dygraphOutput('trends_daily'),
               shiny::downloadButton(
-                'download_series_daily', 'Download trend'
+                'download_series_daily',
+                translate_app('download_series_label', lang_declared)
               )
             )
           )
@@ -334,13 +335,12 @@ catdrought_app <- function(
           options = leaflet::layersControlOptions(collapsed = FALSE, autoZIndex = FALSE)
         ) %>%
         leaflet::addRasterImage(
-          raster_daily, project = FALSE, group = 'raster',
+          raster_daily, project = TRUE, group = 'raster',
           colors = palette, opacity = 1
         ) %>%
         leaflet::addLegend(
           pal = palette, values = raster::values(raster_daily),
-          title =
-            input$var_daily,
+          title = translate_app(input$var_daily, lang()),
           position = 'bottomright',
           opacity = 1
         )
@@ -353,7 +353,8 @@ catdrought_app <- function(
 
       shiny::validate(
         shiny::need(input$display_daily, 'no polygon/plots selected'),
-        shiny::need(input$var_daily, 'no var selected')
+        shiny::need(input$var_daily, 'no var selected'),
+        shiny::need(input$resolution_daily, 'no res selected')
       )
 
       var_dummy <- input$var_daily
@@ -495,8 +496,8 @@ catdrought_app <- function(
         dplyr::select(avg_pval) %>%
         xts::as.xts(order.by = plot_data$day) %>%
         dygraphs::dygraph(
-          main = glue::glue("{var_id} - {poly_id}"),
-          ylab = glue::glue("{var_id}")
+          main = glue::glue("{translate_app(var_id, lang())} - {poly_id}"),
+          ylab = glue::glue("{translate_app(var_id, lang())}")
         )
     })
 
@@ -506,18 +507,19 @@ catdrought_app <- function(
       handlerExpr = {
 
         # go to series
-        shiny::updateTabsetPanel(session, 'daily_main_panel', selected = 'Series')
+        shiny::updateTabsetPanel(
+          session, 'daily_main_panel', selected = translate_app('map_tab_label', lang())
+        )
 
         # modal waiting time
         shiny::showModal(
           ui = shiny::modalDialog(
             shiny::tagList(
-
               shiny::fluidRow(
                 shiny::column(
                   12,
                   shiny::p(
-                    "Extracting all values for the selected area. This can take a while (30 ~ 60 secs)"
+                    translate_app('modal_waiting_p', lang())
                   )
                 )
               )
@@ -525,7 +527,7 @@ catdrought_app <- function(
             easyClose = TRUE,
             footer = shiny::tagList(
               # shiny::modalButton(translate_app('modal_dismiss_label', lang_declared)),
-              shiny::modalButton('dismiss')
+              shiny::modalButton(translate_app('dismiss_btn', lang()))
             )
           )
         )
@@ -550,10 +552,11 @@ catdrought_app <- function(
                   12,
                   # format options
                   shiny::selectInput(
-                    'data_format', 'format',#translate_app('data_format_label', lang_declared),
+                    'data_format',
+                    translate_app('download_raster_format', lang_declared),
                     choices = list(
-                      'GIS' = c('gtiff', 'gpkg')# %>%
-                        # magrittr::set_names(translate_app(., lang_declared)),
+                      'GIS' = c('gtiff', 'gpkg') %>%
+                        magrittr::set_names(translate_app(., lang_declared)),
                     ),
                     selected = 'gtiff'
                   )
@@ -571,10 +574,10 @@ catdrought_app <- function(
             easyClose = TRUE,
             footer = shiny::tagList(
               # shiny::modalButton(translate_app('modal_dismiss_label', lang_declared)),
-              shiny::modalButton('dismiss'),
+              shiny::modalButton(translate_app('dismiss_btn', lang())),
               shiny::downloadButton(
                 'download_data_with_options',
-                label = 'download',#translate_app('sidebar_h4_download', lang_declared),
+                label = translate_app('download_raster_label', lang()),
                 class = 'btn-success'
               )
             )

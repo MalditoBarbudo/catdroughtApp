@@ -9,6 +9,7 @@ tibble::tribble(
   ~text_id, ~translation_cat, ~translation_eng, ~translation_spa,
 
   # var_daily sel
+  "var_daily_label", 'Tria la variable', 'Choose variable', 'Elige la variable',
   "Rain", "Precipitació (mm)", "Precipitation (mm)", "Precipitación (mm)",
   "PET", "Evapo-transpiració potencial (mm)", "Potential evapo-transpiration (mm)", "Evap-transpiración potencial (mm)",
   "NetPrec", "Precipitació neta (mm)", "Net precipitation (mm)", "Precipitación neta (mm)",
@@ -26,7 +27,11 @@ tibble::tribble(
   'Climate', "Clima", 'Climate', "Clima",
   'Drought stress', "Estrès hídric", 'Drought stress', "Estrés hídrico",
 
+  # date_daily sel
+  "date_daily_label", 'Data', 'Date', 'Fecha',
+
   # display_daily sel
+  "display_daily_label", "Mostra divisions", "Show divisions", "Mostrar divisiones",
   'none', "Cap", "None", "Ninguno",
   "Watersheds", "Concas", "Watersheds", "Cuencas hidrológicas",
   "Counties", "Comarques", "Counties", "Comarcas",
@@ -34,10 +39,27 @@ tibble::tribble(
   "IFN plots", "Parcel·les IFN", "NFI plots", "Parcelas IFN",
 
   # resolution_daily sel
+  "resolution_daily_label", "Resolució del ràster", "Raster res", "Resolución del ráster",
   'Smoothed', "Suavitzat (1km)", "Smoothed (1km)", "Suavizado (1km)",
   '1km', "1km", "1km", "1km",
   '200m', "200m", "200m", "200m",
 
+  # download raster button
+  "download_raster_label", "Descàrrega el ràster", "Download raster", "Descarga el ráster",
+  "download_raster_format", "Format", "Format", "Formato",
+  "gtiff", "GeoTiff", "GeoTiff", "GeoTiff",
+  "gpkg", "GeoPackage", "GeoPackage", "GeoPackage",
+
+  # download trend button
+  "download_series_label", "Descàrrega la sèrie", "Download series", "Descarga la serie",
+
+  # tab panel titles
+  'map_tab_label', "Mapa", "Map", "Mapa",
+  'series_tab_label', "Sèries temporals", "Time series", "Series temporales",
+
+  # modal dialog waiting
+  'modal_waiting_p', "Extraient tots els valors per a l'àrea seleccionada. Això pot trigar algun temps (~ 30-60s)", "Extracting all values for the selected area. This can take a while (30 ~ 60 secs)", "Extrayendo todos los valores para el área seleccionada. Esto puede tardar algún tiempo (~ 30-60s)",
+  'dismiss_btn', "Tancar", "Dismiss", "Cerrar",
 
 
 
@@ -49,7 +71,7 @@ tibble::tribble(
   # "user_file_sel_button_label", "Navegueu", "Browse", "Explora",
   # "user_file_sel_placeholder", "No s’ha seleccionat cap fitxer", "No file selected", "No se seleccionado ningún archivo",
   # "sidebar_h4_results", "Resultats", "Results", "Resultados",
-  # "sidebar_h4_download", "Descarrega", "Download", "Descarga",
+  # "sidebar_h4_download", "Descàrrega", "Download", "Descarga",
   # "main_panel_raster_siz_1", "Ràster per a la visualització té una mida de cel·la de 100x100 metres.", "Raster for visualization has a cell size of 100x100 meters.", "El ráster para la visualización tiene un tamaño de celda de 100x100 metros.",
   # "main_panel_raster_siz_2", "Ràster per als càlculs té una mida de cel·la de 20x20 metres.", "Raster for calculations has a cell size of 20x20 meters.", "El ráster para los cálculos tiene un tamaño de celda de 20x20 metros.",
   # "data_format_label", "Format de dades", "Data format", "Formato de los datos",
