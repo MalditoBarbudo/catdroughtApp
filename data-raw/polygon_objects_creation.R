@@ -14,7 +14,10 @@ counties_polygons <- sf::read_sf('data-raw/shapefiles/bm5mv20sh0tpc1_20180101_0.
 watersheds_polygons <- sf::read_sf('data-raw/shapefiles/Concajs.shp') %>%
   # rmapshaper::ms_simplify(0.01) %>%
   sf::st_transform(4326) %>%
-  dplyr::select(poly_id = CONCA, geometry)
+  dplyr::select(poly_id = CONCA, geometry) %>%
+  sf::st_cast('MULTIPOLYGON') %>%
+  dplyr::group_by(poly_id) %>%
+  dplyr::summarise_all(dplyr::first)
 
 ## nfi plots ####
 nfidb <- tidyNFI::nfi_connect(
