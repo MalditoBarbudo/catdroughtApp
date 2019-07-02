@@ -85,9 +85,9 @@ catdrought_app <- function(
   ## SERVER ####
   server <- function(input, output, session) {
     ## debug #####
-    # output$debug1 <- shiny::renderPrint({
-    #   input$map_daily_shape_click
-    # })
+    output$debug1 <- shiny::renderPrint({
+      input$map_daily_click
+    })
     # output$debug2 <- shiny::renderPrint({
     #   map_reactives$map_click
     # })
@@ -189,17 +189,17 @@ catdrought_app <- function(
         shiny::mainPanel(
 
           ########################################################### debug ####
-          # shiny::absolutePanel(
-          #   id = 'debug', class = 'panel panel-default', fixed = TRUE,
-          #   draggable = TRUE, width = 640, height = 'auto',
-          #   # top = 100, left = 100, rigth = 'auto', bottom = 'auto',
-          #   # top = 'auto', left = 'auto', right = 100, bottom = 100,
-          #   top = 60, left = 'auto', right = 50, bottom = 'auto',
-          #
-          #   shiny::textOutput('debug1'),
-          #   shiny::textOutput('debug2'),
-          #   shiny::textOutput('debug3')
-          # ),
+          shiny::absolutePanel(
+            id = 'debug', class = 'panel panel-default', fixed = TRUE,
+            draggable = TRUE, width = 640, height = 'auto',
+            # top = 100, left = 100, rigth = 'auto', bottom = 'auto',
+            # top = 'auto', left = 'auto', right = 100, bottom = 100,
+            top = 60, left = 'auto', right = 50, bottom = 'auto',
+
+            shiny::textOutput('debug1'),
+            shiny::textOutput('debug2'),
+            shiny::textOutput('debug3')
+          ),
           ####################################################### end debug ####
 
           shiny::tabsetPanel(
@@ -486,11 +486,13 @@ catdrought_app <- function(
     series_data_for_pixel <- shiny::reactive({
 
       shiny::validate(
-        shiny::need(input$map_daily_click, 'no map click'),
-        shiny::need(input$display_daily == 'none', 'polygons_selected'),
-        shiny::need(input$var_daily, 'no var selected'),
-        shiny::need(input$resolution_daily, 'no resolution selected')
+        shiny::need(input$map_daily_click, 'no map click')
+        # shiny::need(input$display_daily == 'none', 'polygons_selected'),
+        # shiny::need(input$var_daily, 'no var selected'),
+        # shiny::need(input$resolution_daily, 'no resolution selected')
       )
+
+      clicked_pixel <- input$map_daily_click
 
       # band
       band_sel <- switch(
@@ -523,19 +525,17 @@ catdrought_app <- function(
         "daily.catdrought_{resolution_sel}"
       )
 
-      clicked_pixel <- input$map_daily_click
-
       pixel_query <- glue::glue(
         "
           SELECT day, ST_Value(
             rast,
             {band_sel},
-            ST_Transform(ST_SetSRID(ST_Makepoint({clicked_pixel$lng},{clicked_pixel$lat}),4326),3043)
+            ST_SetSRID(ST_Makepoint({clicked_pixel$lng},{clicked_pixel$lat}),4326)
           ) As pixel_value
           FROM {table_name}
           WHERE ST_Intersects(
             rast,
-            ST_Transform(ST_SetSRID(ST_Makepoint({clicked_pixel$lng},{clicked_pixel$lat}),4326),3043)
+            ST_SetSRID(ST_Makepoint({clicked_pixel$lng},{clicked_pixel$lat}),4326)
           )
         "
       )
@@ -568,7 +568,7 @@ catdrought_app <- function(
           )
       } else {
         # click
-        clicked_pixel <- input(map_daily_click)
+        clicked_pixel <- input$map_daily_click
 
         # data and plot
         plot_data <- series_data_for_pixel()
@@ -576,17 +576,25 @@ catdrought_app <- function(
           dplyr::select(pixel_value) %>%
           xts::as.xts(order.by = plot_data$day) %>%
           dygraphs::dygraph(
-            main = glue::glue("{translate_app(var_id, lang())} - pixel at [{round(clicked_pixel$long, 3)}, {round(clicked_pixel$lat, 3)}]"),
+            main = glue::glue("{translate_app(var_id, lang())} - pixel at [{round(clicked_pixel$lng, 3)}, {round(clicked_pixel$lat, 3)}]"),
             ylab = glue::glue("{translate_app(var_id, lang())}")
           )
       }
 
+      return(res)
 
     })
 
     ## observer to change the active tab
+    tab_change_events <- shiny::reactiveValues()
+    shiny::observe({
+      tab_change_events$shape <- input$map_daily_shape_click
+      tab_change_events$pixel <- input$map_daily_click
+    })
+
     shiny::observeEvent(
-      eventExpr = input$map_daily_shape_click,
+      ignoreInit = TRUE,
+      eventExpr = tab_change_events,
       handlerExpr = {
 
         # go to series
