@@ -1,0 +1,15 @@
+# script to create the list for building palettes
+palettes_dictionary <- list(
+  Rain = list(min = 0, max = 100, pal = viridis::cividis(100), rev = TRUE),
+  PET = list(min = 0, max = 15, pal = viridis::viridis(100), rev = FALSE),
+  NetPrec = list(min = 0, max = 100, pal = viridis::cividis(100), rev = TRUE),
+  Eplant = list(min = 0, max = 5, pal = viridis::viridis(100), rev = FALSE),
+  Esoil = list(min = 0, max = 5, pal = viridis::viridis(100), rev = FALSE),
+  Runoff = list(min = 0, max = 15, pal = viridis::cividis(100), rev = TRUE),
+  DeepDrainage = list(min = 0, max = 15, pal = viridis::cividis(100), rev = TRUE),
+  REW = list(min = 0, max = 1, pal = viridis::plasma(100), rev = TRUE),
+  Theta = list(min = 0, max = 0.5, pal = viridis::plasma(100), rev = TRUE),
+  Psi = list(min = 0, max = 4, pal = viridis::plasma(100), rev = TRUE),
+  DDS = list(min = 0, max = 365, pal = viridis::inferno(100), rev = TRUE),
+  NDD = list(min = 0, max = 1, pal = viridis::inferno(100), rev = TRUE)
+)

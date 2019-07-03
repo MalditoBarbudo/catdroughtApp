@@ -310,12 +310,13 @@ catdrought_app <- function(
     output$map_daily <- leaflet::renderLeaflet({
 
       raster_daily <- raster_selected_daily()
+      var_daily_sel <- input$var_daily
 
       palette <- leaflet::colorNumeric(
-        viridis::plasma(100),
-        # raster::values(basal_area_raster),
-        raster::values(raster_daily),
-        na.color = 'transparent'
+        palette = palettes_dictionary[[var_daily_sel]][['pal']],
+        domain = raster::values(raster_daily),
+        na.color = 'transparent',
+        reverse = palettes_dictionary[[var_daily_sel]][['rev']]
       )
 
       # browser()
@@ -641,8 +642,6 @@ catdrought_app <- function(
       handlerExpr = {
 
         lang_declared = lang()
-
-        browser()
 
         shiny::showModal(
           ui = shiny::modalDialog(
