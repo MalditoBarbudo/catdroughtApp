@@ -215,6 +215,7 @@ catdrought_app <- function(
             # series
             shiny::tabPanel(
               title = translate_app('series_tab_label', lang_declared),
+              value = 'series',
               dygraphs::dygraphOutput('trends_daily'),
               shiny::downloadButton(
                 'download_series_daily',
@@ -585,21 +586,13 @@ catdrought_app <- function(
 
     })
 
-    ## observer to change the active tab
-    tab_change_events <- shiny::reactiveValues()
-    shiny::observe({
-      tab_change_events$shape <- input$map_daily_shape_click
-      tab_change_events$pixel <- input$map_daily_click
-    })
-
+    ## observers to change the active tab
     shiny::observeEvent(
-      ignoreInit = TRUE,
-      eventExpr = tab_change_events,
+      eventExpr = input$map_daily_shape_click,
       handlerExpr = {
-
         # go to series
         shiny::updateTabsetPanel(
-          session, 'daily_main_panel', selected = translate_app('map_tab_label', lang())
+          session, 'daily_main_panel', selected = 'series'
         )
 
         # modal waiting time
@@ -625,6 +618,21 @@ catdrought_app <- function(
       }
     )
 
+    shiny::observe({
+
+    })
+
+    shiny::observeEvent(
+      eventExpr = input$map_daily_click,
+      handlerExpr = {
+        # go to series only if none selected in display_daily
+        if (input$display_daily == 'none') {
+          shiny::updateTabsetPanel(
+            session, 'daily_main_panel', selected = 'series'
+          )
+        }
+      }
+    )
 
     ## download handlers ####
     # modal for saving the raster data
