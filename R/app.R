@@ -85,9 +85,9 @@ catdrought_app <- function(
   ## SERVER ####
   server <- function(input, output, session) {
     ## debug #####
-    output$debug1 <- shiny::renderPrint({
-      input$map_daily_click
-    })
+    # output$debug1 <- shiny::renderPrint({
+    #   input$map_daily_click
+    # })
     # output$debug2 <- shiny::renderPrint({
     #   map_reactives$map_click
     # })
@@ -189,17 +189,17 @@ catdrought_app <- function(
         shiny::mainPanel(
 
           ########################################################### debug ####
-          shiny::absolutePanel(
-            id = 'debug', class = 'panel panel-default', fixed = TRUE,
-            draggable = TRUE, width = 640, height = 'auto',
-            # top = 100, left = 100, rigth = 'auto', bottom = 'auto',
-            # top = 'auto', left = 'auto', right = 100, bottom = 100,
-            top = 60, left = 'auto', right = 50, bottom = 'auto',
-
-            shiny::textOutput('debug1'),
-            shiny::textOutput('debug2'),
-            shiny::textOutput('debug3')
-          ),
+          # shiny::absolutePanel(
+          #   id = 'debug', class = 'panel panel-default', fixed = TRUE,
+          #   draggable = TRUE, width = 640, height = 'auto',
+          #   # top = 100, left = 100, rigth = 'auto', bottom = 'auto',
+          #   # top = 'auto', left = 'auto', right = 100, bottom = 100,
+          #   top = 60, left = 'auto', right = 50, bottom = 'auto',
+          #
+          #   shiny::textOutput('debug1'),
+          #   shiny::textOutput('debug2'),
+          #   shiny::textOutput('debug3')
+          # ),
           ####################################################### end debug ####
 
           shiny::tabsetPanel(
@@ -472,7 +472,11 @@ catdrought_app <- function(
             on st_intersects(feat.geom,rast)
           ) as foo
           )
-          select day, sum(mean*count)/sum(count) as avg_pval from b_stats
+          select
+            day,
+            sum(mean*count)/sum(count) as avg_pval,
+            sqrt(sum(stddev*stddev*count)/sum(count)) as se_pval
+          from b_stats
           where count > 0
           group by day;
         "
@@ -562,11 +566,15 @@ catdrought_app <- function(
         # data and plot
         plot_data <- series_data_for_polys()
         res <- plot_data %>%
-          dplyr::select(avg_pval) %>%
+          dplyr::mutate(low = avg_pval - se_pval, high = avg_pval + se_pval) %>%
+          dplyr::select(avg_pval, low, high) %>%
           xts::as.xts(order.by = plot_data$day) %>%
           dygraphs::dygraph(
             main = glue::glue("{translate_app(var_id, lang())} - {poly_id}"),
             ylab = glue::glue("{translate_app(var_id, lang())}")
+          ) %>%
+          dygraphs::dySeries(
+            c('low', 'avg_pval', 'high'), label = poly_id
           )
       } else {
         # click
@@ -582,6 +590,15 @@ catdrought_app <- function(
             ylab = glue::glue("{translate_app(var_id, lang())}")
           )
       }
+
+      res <- res %>%
+        dygraphs::dyAxis(
+          name = 'y',
+          valueRange = c(
+            palettes_dictionary[[input$var_daily]][['min']],
+            palettes_dictionary[[input$var_daily]][['max']]
+          )
+        )
 
       return(res)
 
