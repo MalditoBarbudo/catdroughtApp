@@ -86,7 +86,7 @@ catdrought_app <- function(
   server <- function(input, output, session) {
     ## debug #####
     # output$debug1 <- shiny::renderPrint({
-    #   input$map_daily_click
+    #   input$map_daily_marker_click
     # })
     # output$debug2 <- shiny::renderPrint({
     #   map_reactives$map_click
@@ -375,6 +375,7 @@ catdrought_app <- function(
             data = nfi4_plots,
             group = 'display_daily',
             label = ~plot_id,
+            layerId = ~plot_id,
             clusterOptions = leaflet::markerClusterOptions()
           )
       } else {
@@ -551,6 +552,69 @@ catdrought_app <- function(
 
     })
 
+    ## series markers observers ####
+    series_data_for_markers <- shiny::reactive({
+
+      shiny::validate(
+        shiny::need(input$map_daily_click, 'no map click')
+        # shiny::need(input$display_daily == 'none', 'polygons_selected'),
+        # shiny::need(input$var_daily, 'no var selected'),
+        # shiny::need(input$resolution_daily, 'no resolution selected')
+      )
+
+      clicked_marker <- input$map_daily_marker_click
+
+      # band
+      band_sel <- switch(
+        input$var_daily,
+        "DeepDrainage" = 3,
+        "Eplant" = 4,
+        "Esoil" = 5,
+        "LAI" = 6,
+        "NetPrec" = 7,
+        "PET" = 8,
+        "Psi" = 9,
+        "Rain" = 10,
+        "REW" = 11,
+        "Runoff" = 12,
+        "Theta" = 13,
+        "DDS" = 2,
+        "NDD" = 1
+      )
+
+      # resolution
+      resolution_sel <- switch(
+        input$resolution_daily,
+        'Smoothed' = 'smooth',
+        '1km' = 'low',
+        '200m' = 'high'
+      )
+
+      # table name
+      table_name <- glue::glue(
+        "daily.catdrought_{resolution_sel}"
+      )
+
+      marker_query <- glue::glue(
+        "
+          SELECT day, ST_Value(
+            rast,
+            {band_sel},
+            ST_SetSRID(ST_Makepoint({clicked_marker$lng},{clicked_marker$lat}),4326)
+          ) As marker_value
+          FROM {table_name}
+          WHERE ST_Intersects(
+            rast,
+            ST_SetSRID(ST_Makepoint({clicked_marker$lng},{clicked_marker$lat}),4326)
+          )
+        "
+      )
+
+      res <- pool::dbGetQuery(catdrought_db, marker_query)
+      return(res)
+
+    })
+
 
     ## series output ####
     output$trends_daily <- dygraphs::renderDygraph({
@@ -558,24 +622,44 @@ catdrought_app <- function(
       # variable
       var_id <- input$var_daily
 
-      # here we have to check if poly or pixel
+      # here we have to check if marker or poly or pixel
       if (input$display_daily != 'none') {
-        # polygon id
-        poly_id <- input$map_daily_shape_click$id
 
-        # data and plot
-        plot_data <- series_data_for_polys()
-        res <- plot_data %>%
-          dplyr::mutate(low = avg_pval - se_pval, high = avg_pval + se_pval) %>%
-          dplyr::select(avg_pval, low, high) %>%
-          xts::as.xts(order.by = plot_data$day) %>%
-          dygraphs::dygraph(
-            main = glue::glue("{translate_app(var_id, lang())} - {poly_id}"),
-            ylab = glue::glue("{translate_app(var_id, lang())}")
-          ) %>%
-          dygraphs::dySeries(
-            c('low', 'avg_pval', 'high'), label = poly_id
-          )
+        if (input$display_daily == 'IFN plots') {
+          # click
+          clicked_marker <- input$map_daily_marker_click
+
+          # data and plot
+          plot_data <- series_data_for_markers()
+          res <- plot_data %>%
+            dplyr::select(marker_value) %>%
+            xts::as.xts(order.by = plot_data$day) %>%
+            dygraphs::dygraph(
+              main = glue::glue("{translate_app(var_id, lang())} - {clicked_marker$id} at [{round(clicked_marker$lng, 3)}, {round(clicked_marker$lat, 3)}]"),
+              ylab = glue::glue("{translate_app(var_id, lang())}")
+            ) %>%
+            dygraphs::dySeries(
+              'marker_value', label = clicked_marker$id
+            )
+        } else {
+          # polygon id
+          poly_id <- input$map_daily_shape_click$id
+
+          # data and plot
+          plot_data <- series_data_for_polys()
+          res <- plot_data %>%
+            dplyr::mutate(low = avg_pval - se_pval, high = avg_pval + se_pval) %>%
+            dplyr::select(avg_pval, low, high) %>%
+            xts::as.xts(order.by = plot_data$day) %>%
+            dygraphs::dygraph(
+              main = glue::glue("{translate_app(var_id, lang())} - {poly_id}"),
+              ylab = glue::glue("{translate_app(var_id, lang())}")
+            ) %>%
+            dygraphs::dySeries(
+              c('low', 'avg_pval', 'high'), label = poly_id
+            )
+        }
+
       } else {
         # click
         clicked_pixel <- input$map_daily_click
@@ -649,6 +733,15 @@ catdrought_app <- function(
             session, 'daily_main_panel', selected = 'series'
           )
         }
+      }
+    )
+
+    shiny::observeEvent(
+      eventExpr = input$map_daily_marker_click,
+      handlerExpr = {
+        shiny::updateTabsetPanel(
+          session, 'daily_main_panel', selected = 'series'
+        )
       }
     )
 
