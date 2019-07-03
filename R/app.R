@@ -642,6 +642,8 @@ catdrought_app <- function(
 
         lang_declared = lang()
 
+        browser()
+
         shiny::showModal(
           ui = shiny::modalDialog(
             shiny::tagList(
@@ -655,7 +657,7 @@ catdrought_app <- function(
                     translate_app('download_raster_format', lang_declared),
                     choices = list(
                       'GIS' = c('gtiff', 'gpkg') %>%
-                        magrittr::set_names(translate_app(., lang_declared)),
+                        magrittr::set_names(translate_app(., lang_declared))
                     ),
                     selected = 'gtiff'
                   )
