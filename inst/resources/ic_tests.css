@@ -1,0 +1,35 @@
+/* TESTS FOR CORPORATIVE IMAGE */
+/*
+
+Esto es una tentativa de establecer una paleta de colores basada en los colores del
+CREAF y del CTFC e uniformizar el estilo de las apps
+
+This is a try to establish a color palette based on the main colors of CREAF and CTFC, and
+uniformize the apps style
+
+*/
+
+/* NAVBAR */
+.navbar-static-top {
+  background-color: #001629 !important;
+}
+
+li.active > a {
+  background-color: #2e645a;
+}
+
+/* well Panels */
+.well {
+  background-color: #15351e;
+  color: #f0f2f0;
+}
+
+/* body */
+body {
+  background-color: #f0f2f0;
+}
+
+/* buttons */
+.btn {
+  background-color: #448714;
+}

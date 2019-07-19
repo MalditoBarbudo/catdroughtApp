@@ -1,3 +1,38 @@
+/* TESTS FOR CORPORATIVE IMAGE */
+/*
+
+Esto es una tentativa de establecer una paleta de colores basada en los colores del
+CREAF y del CTFC e uniformizar el estilo de las apps
+
+This is a try to establish a color palette based on the main colors of CREAF and CTFC, and
+uniformize the apps style
+
+@import "ic_tests.css";
+
+*/
+
+.navbar-static-top {
+  background-color: #001629 !important;
+}
+
+li.active > a {
+  background-color: #2e645a;
+}
+
+.well {
+  background-color: #15351e;
+  color: #f0f2f0;
+}
+
+body {
+  background-color: #f0f2f0;
+}
+
+.btn {
+  background-color: #448714;
+}
+
+
 /*
 Custom css for Allometr app
 */
