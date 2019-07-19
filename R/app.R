@@ -74,7 +74,7 @@ catdrought_app <- function(
 
       # navbarPage contents
       shiny::tabPanel(
-        title = 'Current',
+        title = shiny::uiOutput("actual_tab"),
         # we need to create the ui in the server to catch the language input
         # and redraw all the inputs and texts in the selected lang
         shiny::uiOutput('current_ui')
@@ -98,6 +98,10 @@ catdrought_app <- function(
     ## lang reactive ####
     lang <- shiny::reactive({
       input$lang
+    })
+
+    output$actual_tab <- renderText({
+      translate_app('actual_tab_title', lang())
     })
 
     ## proper UI ####
@@ -724,10 +728,14 @@ catdrought_app <- function(
     # modal to show a warning about time consuming steps
     shiny::observe({
 
-      input$map_daily_shape_click
-      input$map_daily_click
-      input$map_daily_marker_click
-
+      # dirty check of any click in the map to show the modal
+      shiny::validate(
+        if (is.null(shiny::need(input$map_daily_shape_click, 'no shape click')) ||
+            is.null(shiny::need(input$map_daily_click, 'no map click')) ||
+            is.null(shiny::need(input$map_daily_marker_click, 'no marker click'))) {
+          NULL
+        } else {FALSE}
+      )
 
       # modal waiting time
       shiny::showModal(

@@ -47,10 +47,13 @@ div.table_container {
   color: red;
 }
 
-/*
-lets try to make red the background of the dygraph
-*/
-
+/* trick to hide the spinner when the dygraph loads */
 #trends_daily > div {
   background-color: white;
+}
+
+/* position of the modal */
+div.modal-dialog {
+  position: relative;
+  top: 300px;
 }
