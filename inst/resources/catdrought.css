@@ -46,3 +46,11 @@ div.table_container {
 .shiny-output-error-drawed_polygon_warn {
   color: red;
 }
+
+/*
+lets try to make red the background of the dygraph
+*/
+
+#trends_daily > div {
+  background-color: white;
+}

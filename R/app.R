@@ -4,7 +4,7 @@
 #'
 #' @export
 catdrought_app <- function(
-  user = 'ifn', password = 'IFN2018creaf',
+  user = 'guest', password = 'guest',
   host = NULL, port = NULL, dbname = 'catdrought_db'
 ) {
 
@@ -216,7 +216,8 @@ catdrought_app <- function(
             shiny::tabPanel(
               title = translate_app('series_tab_label', lang_declared),
               value = 'series',
-              dygraphs::dygraphOutput('trends_daily'),
+              dygraphs::dygraphOutput('trends_daily') %>%
+                shinyWidgets::addSpinner(spin = 'cube', color = '#26a65b'),
               shiny::downloadButton(
                 'download_series_daily',
                 translate_app('download_series_label', lang_declared)
@@ -635,7 +636,7 @@ catdrought_app <- function(
             dplyr::select(marker_value) %>%
             xts::as.xts(order.by = plot_data$day) %>%
             dygraphs::dygraph(
-              main = glue::glue("{translate_app(var_id, lang())} - {clicked_marker$id} at [{round(clicked_marker$lng, 3)}, {round(clicked_marker$lat, 3)}]"),
+              main = glue::glue("{translate_app(var_id, lang())} - {glue::glue(translate_app('daily_trends_ifn_title', lang()))}]"),
               ylab = glue::glue("{translate_app(var_id, lang())}")
             ) %>%
             dygraphs::dySeries(
@@ -670,7 +671,7 @@ catdrought_app <- function(
           dplyr::select(pixel_value) %>%
           xts::as.xts(order.by = plot_data$day) %>%
           dygraphs::dygraph(
-            main = glue::glue("{translate_app(var_id, lang())} - pixel at [{round(clicked_pixel$lng, 3)}, {round(clicked_pixel$lat, 3)}]"),
+            main = glue::glue("{translate_app(var_id, lang())} - {glue::glue(translate_app('daily_trends_other_title', lang()))}"),
             ylab = glue::glue("{translate_app(var_id, lang())}")
           )
       }
@@ -696,33 +697,8 @@ catdrought_app <- function(
         shiny::updateTabsetPanel(
           session, 'daily_main_panel', selected = 'series'
         )
-
-        # modal waiting time
-        shiny::showModal(
-          ui = shiny::modalDialog(
-            shiny::tagList(
-              shiny::fluidRow(
-                shiny::column(
-                  12,
-                  shiny::p(
-                    translate_app('modal_waiting_p', lang())
-                  )
-                )
-              )
-            ),
-            easyClose = TRUE,
-            footer = shiny::tagList(
-              # shiny::modalButton(translate_app('modal_dismiss_label', lang_declared)),
-              shiny::modalButton(translate_app('dismiss_btn', lang()))
-            )
-          )
-        )
       }
     )
-
-    shiny::observe({
-
-    })
 
     shiny::observeEvent(
       eventExpr = input$map_daily_click,
@@ -744,6 +720,36 @@ catdrought_app <- function(
         )
       }
     )
+
+    # modal to show a warning about time consuming steps
+    shiny::observe({
+
+      input$map_daily_shape_click
+      input$map_daily_click
+      input$map_daily_marker_click
+
+
+      # modal waiting time
+      shiny::showModal(
+        ui = shiny::modalDialog(
+          shiny::tagList(
+            shiny::fluidRow(
+              shiny::column(
+                12,
+                shiny::p(
+                  translate_app('modal_waiting_p', lang())
+                )
+              )
+            )
+          ),
+          easyClose = TRUE,
+          footer = shiny::tagList(
+            # shiny::modalButton(translate_app('modal_dismiss_label', lang_declared)),
+            shiny::modalButton(translate_app('dismiss_btn', lang()))
+          )
+        )
+      )
+    })
 
     ## download handlers ####
     # modal for saving the raster data

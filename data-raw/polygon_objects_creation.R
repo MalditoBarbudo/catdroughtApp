@@ -21,7 +21,7 @@ watersheds_polygons <- sf::read_sf('data-raw/shapefiles/Concajs.shp') %>%
 
 ## nfi plots ####
 nfidb <- tidyNFI::nfi_connect(
-  user = 'guest', password = 'guest', host = NULL, port = NULL, dbname = 'tururu'
+  user = 'guest', password = 'guest', host = '127.0.0.1', port = NULL, dbname = 'tururu'
 )
 
 nfi4_plots <- dplyr::tbl(nfidb, 'PLOTS') %>%
