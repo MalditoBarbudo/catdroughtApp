@@ -14,5 +14,6 @@ Imports:
     RPostgreSQL,
     leaflet,
     dygraphs,
-    xts
+    xts,
+    shinyWidgets
 RoxygenNote: 6.1.1
