@@ -15,5 +15,16 @@ Imports:
     leaflet,
     dygraphs,
     xts,
-    shinyWidgets
+    shinyWidgets,
+    rpostgis,
+    glue,
+    stringr,
+    raster,
+    magrittr,
+    dplyr,
+    tidyr,
+    purrr,
+    lubridate,
+    rlang,
+    sf
 RoxygenNote: 6.1.1
