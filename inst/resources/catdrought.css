@@ -9,7 +9,7 @@ uniformize the apps style
 
 @import "ic_tests.css";
 
-
+*/
 
 .navbar-static-top {
   background-color: #001629 !important;
@@ -20,19 +20,17 @@ li.active > a {
 }
 
 .well {
-  background-color: #15351e;
+  background-color: #448714;
   color: #f0f2f0;
 }
 
 body {
-  background-color: #f0f2f0;
+  background-color: #2e645a;
 }
 
 .btn {
-  background-color: #448714;
+  background-color: #76f7a7;
 }
-
-*/
 
 
 /*
