@@ -28,6 +28,15 @@ uniformize the apps style
   color: #c8cac8;
 }
 
+/* main panel tabs */
+
+.tabbable .nav-tabs>.active>a,
+.tabbable .nav-tabs>.active>a:focus,
+.tabbable .nav-tabs>.active>a:hover {
+  background-color: #647a8d;
+  color: #c8cac8;
+}
+
 /* well panels and sidebars */
 .well {
   background-color: #001629;
