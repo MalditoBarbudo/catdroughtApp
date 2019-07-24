@@ -24,36 +24,64 @@ uniformize the apps style
 .navbar-default .navbar-nav>.active>a,
 .navbar-default .navbar-nav>.active>a:focus,
 .navbar-default .navbar-nav>.active>a:hover {
-  background-color: #647a8d;
+  background-color: #448714;
   color: #c8cac8;
 }
 
 /* main panel tabs */
 
+.tabbable .nav-tabs>li>a {
+  background-color: #647a8d;
+  border: 0px;
+  color: #c8cac8;
+}
+
 .tabbable .nav-tabs>.active>a,
 .tabbable .nav-tabs>.active>a:focus,
 .tabbable .nav-tabs>.active>a:hover {
-  background-color: #647a8d;
+  background-color: #448714;
   color: #c8cac8;
+  border: 0px;
 }
 
 /* well panels and sidebars */
 .well {
   background-color: #001629;
   color: #c8cac8;
+  border: 0px;
+}
+
+/* lang input */
+.dropdown-menu {
+  background-color: #c8cac8;
+}
+
+.dropdown-menu>.selected>a {
+  background-color: #c8cac8;
+}
+
+.dropdown-menu>li>a {
+  background-color: #c8cac8;
+}
+
+.dropdown-menu>li>a:hover {
+  background-color: #448714;
 }
 
 /* inputs */
 .form-control, .datepicker-dropdown, .datepicker {
   background-color: #c8cac8;
+  border: 0px;
 }
 
 .selectize-dropdown, .selectize-input.full, .optgroup-header, .option {
   background-color: #c8cac8 !important;
+  border: 0px;
 }
 
 .option:hover, .option:focus {
-  background-color: #647a8d !important;
+  background-color: #448714 !important;
+  border: 0px;
 }
 
 /* body background */
@@ -124,7 +152,7 @@ div.table_container {
 }
 
 .flag-image {
-  border-radius: 50%;
+  border-radius: 5%;
 }
 
 .shiny-output-error-drawed_polygon_warn {
