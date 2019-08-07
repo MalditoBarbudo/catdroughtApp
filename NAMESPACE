@@ -2,4 +2,5 @@
 
 export("%>%")
 export(catdrought_app)
+export(catdrought_daily_update)
 importFrom(magrittr,"%>%")
