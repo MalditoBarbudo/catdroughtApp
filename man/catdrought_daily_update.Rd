@@ -6,7 +6,7 @@
 \usage{
 catdrought_daily_update(user = "guest", pass = "guest",
   port = "staging",
-  path = "/home/vgranda/LFC/10_serverprocess_data/CatDrought",
+  path = "/home/vgranda/LFC/10_serverproces_data/CatDrought",
   dry = TRUE)
 }
 \arguments{

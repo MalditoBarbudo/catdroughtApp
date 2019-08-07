@@ -16,7 +16,7 @@ raster_brick_creation <- function(file) {
 #' @export
 catdrought_daily_update <- function(
   user = 'guest', pass = 'guest', port = 'staging',
-  path = '/home/vgranda/LFC/10_serverprocess_data/CatDrought', dry = TRUE
+  path = '/home/vgranda/LFC/10_serverproces_data/CatDrought', dry = TRUE
 ) {
 
   port <- switch (port,
@@ -84,26 +84,62 @@ catdrought_daily_update <- function(
   for (date_sel in dates_to_upload) {
 
     # build the raster brick and create the temp table
-    raster_high <- list.files(
-      file.path(
-        path, 'Rdata', 'Maps', 'Current', '200m'
-      ), full.names = TRUE, pattern = date_sel, recursive = TRUE
+    raster_high <- c(
+      list.files(
+        file.path(
+          path, 'Rdata', 'Maps', 'Current', '200m', 'DroughtStress', 'DDS', 'Overall'
+        ), full.names = TRUE, pattern = date_sel, recursive = TRUE
+      ),
+      list.files(
+        file.path(
+          path, 'Rdata', 'Maps', 'Current', '200m', 'DroughtStress', 'NDD', 'Overall'
+        ), full.names = TRUE, pattern = date_sel, recursive = TRUE
+      ),
+      list.files(
+        file.path(
+          path, 'Rdata', 'Maps', 'Current', '200m', 'SPWB'
+        ), full.names = TRUE, pattern = date_sel, recursive = TRUE
+      )
     ) %>%
       purrr::map(raster_brick_creation) %>%
       raster::stack()
 
-    raster_low <- list.files(
-      file.path(
-        path, 'Rdata', 'Maps', 'Current', '1km'
-      ), full.names = TRUE, pattern = date_sel, recursive = TRUE
+    raster_low <- c(
+      list.files(
+        file.path(
+          path, 'Rdata', 'Maps', 'Current', '1km', 'DroughtStress', 'DDS', 'Overall'
+        ), full.names = TRUE, pattern = date_sel, recursive = TRUE
+      ),
+      list.files(
+        file.path(
+          path, 'Rdata', 'Maps', 'Current', '1km', 'DroughtStress', 'NDD', 'Overall'
+        ), full.names = TRUE, pattern = date_sel, recursive = TRUE
+      ),
+      list.files(
+        file.path(
+          path, 'Rdata', 'Maps', 'Current', '1km', 'SPWB'
+        ), full.names = TRUE, pattern = date_sel, recursive = TRUE
+      )
     ) %>%
       purrr::map(raster_brick_creation) %>%
       raster::stack()
 
-    raster_smooth <- list.files(
-      file.path(
-        path, 'Rdata', 'Maps', 'Current', 'Smoothed'
-      ), full.names = TRUE, pattern = date_sel, recursive = TRUE
+    raster_smooth <- c(
+      list.files(
+        file.path(
+          path, 'Rdata', 'Maps', 'Current', 'Smoothed', 'DroughtStress', 'DDS', 'Overall'
+        ), full.names = TRUE, pattern = date_sel, recursive = TRUE
+      ),
+      list.files(
+        file.path(
+          path, 'Rdata', 'Maps', 'Current', 'Smoothed', 'DroughtStress', 'NDD', 'Overall'
+        ), full.names = TRUE, pattern = date_sel, recursive = TRUE
+      ),
+      list.files(
+        file.path(
+          path, 'Rdata', 'Maps', 'Current', 'Smoothed', 'SPWB'
+        ), full.names = TRUE, pattern = date_sel, recursive = TRUE
+      )
     ) %>%
       purrr::map(raster_brick_creation) %>%
       raster::stack()
