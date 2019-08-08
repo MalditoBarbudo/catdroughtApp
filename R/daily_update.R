@@ -73,7 +73,8 @@ catdrought_daily_update <- function(
   # fileSnapshot object to see differences
   load(file = file.path(path, 'fileSnapshot_cached.RData'))
   fileSnapshot_actual <- utils::fileSnapshot(
-    path = path, md5sum = TRUE, pattern = '.rda', recursive = TRUE
+    path = file.path(path, 'Rdata', 'Maps', 'Current'),
+    md5sum = TRUE, pattern = '.rda', recursive = TRUE
   )
 
   changes_object <- utils::changedFiles(fileSnapshot_cached, fileSnapshot_actual)
