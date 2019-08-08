@@ -367,8 +367,9 @@ catdrought_daily_update <- function(
 
   }
 
-
-  # closing database connections
+  # closing database connections and writing the new cached data
+  fileSnapshot_cached <- fileSnapshot_actual
+  save(fileSnapshot_cached, file = file.path(path, 'fileSnapshot_cached.RData'))
   pool::poolReturn(temp_postgresql_conn)
   pool::poolClose(database)
 }
