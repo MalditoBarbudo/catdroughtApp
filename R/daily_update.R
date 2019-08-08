@@ -88,6 +88,12 @@ catdrought_daily_update <- function(
   # now we make a loop for each date to update to create the rasters and update the
   # database, but checking if there is no updates
   if (length(dates_to_upload) < 1) {
+    # closing database connections and writing the new cached data
+    fileSnapshot_cached <- fileSnapshot_actual
+    save(fileSnapshot_cached, file = file.path(path, 'fileSnapshot_cached.RData'))
+    pool::poolReturn(temp_postgresql_conn)
+    pool::poolClose(database)
+    # exit the function
     return()
   }
 
