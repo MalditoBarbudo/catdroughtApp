@@ -4,6 +4,20 @@ raster_brick_creation <- function(file) {
     raster::projectRaster(crs = sp::CRS("+init=epsg:4326"))
 }
 
+day_files_checker <- function(folder, day) {
+
+  files_to_load <- list.files(folder, full.names = TRUE, pattern = day, recursive = FALSE)
+
+  # check if there is files
+  if (length(files_to_load) < 1) {
+    # if not, do it again for the previous day
+    files_to_load <- day_files_checker(folder, as.character(lubridate::date(day) - 1))
+  }
+
+  # of there is files, then return them
+  return(files_to_load)
+}
+
 
 #' Function to update the database with the dates missing
 #'
@@ -50,29 +64,25 @@ catdrought_daily_update <- function(
   )
 
   # we need the new dates, meaning the dates present in data folder that are not present
-  # in the database:
-  # dates in folder
-  dates_daily <- list.files(
-    file.path(
-      path, 'Rdata', 'Maps', 'Current', '200m', 'SPWB', 'NetPrec'
-    ), full.names = FALSE, pattern = '.rda'
-  ) %>% stringr::str_remove(pattern = '.rda')
+  # in the database OR also those that are present in the database but they have been
+  # modified in serverprocess due to fixes or improvements in the data treatment by
+  # Miquel:
 
-  dates_daily_formatted <- dates_daily %>%
-    stringr::str_remove_all(pattern = '-')
+  # First, we need to load the state of the files before the last update. We use a cached
+  # file in the path folder, named fileSnapshot_cached.RData and compare with a new
+  # fileSnapshot object to see differences
+  load(file = file.path(path, 'fileSnapshot_cached.RData'))
+  fileSnapshot_actual <- utils::fileSnapshot(
+    path = path, md5sum = TRUE, pattern = '.rda', recursive = TRUE
+  )
 
+  changes_object <- utils::changedFiles(fileSnapshot_cached, fileSnapshot_actual)
 
-  # the dates in the db
-  dates_database_formatted <- dplyr::db_list_tables(database) %>%
-    stringr::str_extract(pattern = '[0-9]{8}') %>%
-    purrr::discard(~ is.na(.x)) %>%
-    unique() %>%
-    sort()
-
-  # dates to upload
-  dates_to_upload <- dates_daily[
-    which(!(dates_daily_formatted %in% dates_database_formatted))
-    ]
+  dates_to_upload <- c(
+    changes_object$added, changes_object$changed
+  ) %>%
+    stringr::str_sub(-14, -5) %>%
+    unique()
 
   # now we make a loop for each date to update to create the rasters and update the
   # database, but checking if there is no updates
@@ -85,60 +95,210 @@ catdrought_daily_update <- function(
 
     # build the raster brick and create the temp table
     raster_high <- c(
-      list.files(
-        file.path(
-          path, 'Rdata', 'Maps', 'Current', '200m', 'DroughtStress', 'DDS', 'Overall'
-        ), full.names = TRUE, pattern = date_sel, recursive = TRUE
+      # NDD
+      day_files_checker(
+        folder = file.path(path, 'Rdata', 'Maps', 'Current', '200m', 'DroughtStress', 'NDD', 'Overall'),
+        day = date_sel
       ),
-      list.files(
-        file.path(
-          path, 'Rdata', 'Maps', 'Current', '200m', 'DroughtStress', 'NDD', 'Overall'
-        ), full.names = TRUE, pattern = date_sel, recursive = TRUE
+      # DDS
+      day_files_checker(
+        folder = file.path(path, 'Rdata', 'Maps', 'Current', '200m', 'DroughtStress', 'DDS', 'Overall'),
+        day = date_sel
       ),
-      list.files(
-        file.path(
-          path, 'Rdata', 'Maps', 'Current', '200m', 'SPWB'
-        ), full.names = TRUE, pattern = date_sel, recursive = TRUE
+      # DeepDrainage
+      day_files_checker(
+        folder = file.path(path, 'Rdata', 'Maps', 'Current', '200m', 'SPWB', 'DeepDrainage'),
+        day = date_sel
+      ),
+      # Eplant
+      day_files_checker(
+        folder = file.path(path, 'Rdata', 'Maps', 'Current', '200m', 'SPWB', 'Eplant'),
+        day = date_sel
+      ),
+      # Esoil
+      day_files_checker(
+        folder = file.path(path, 'Rdata', 'Maps', 'Current', '200m', 'SPWB', 'Esoil'),
+        day = date_sel
+      ),
+      # LAI
+      day_files_checker(
+        folder = file.path(path, 'Rdata', 'Maps', 'Current', '200m', 'SPWB', 'LAI'),
+        day = date_sel
+      ),
+      # NetPrec
+      day_files_checker(
+        folder = file.path(path, 'Rdata', 'Maps', 'Current', '200m', 'SPWB', 'NetPrec'),
+        day = date_sel
+      ),
+      # PET
+      day_files_checker(
+        folder = file.path(path, 'Rdata', 'Maps', 'Current', '200m', 'SPWB', 'PET'),
+        day = date_sel
+      ),
+      # Psi
+      day_files_checker(
+        folder = file.path(path, 'Rdata', 'Maps', 'Current', '200m', 'SPWB', 'Psi'),
+        day = date_sel
+      ),
+      # Rain
+      day_files_checker(
+        folder = file.path(path, 'Rdata', 'Maps', 'Current', '200m', 'SPWB', 'Rain'),
+        day = date_sel
+      ),
+      # REW
+      day_files_checker(
+        folder = file.path(path, 'Rdata', 'Maps', 'Current', '200m', 'SPWB', 'REW'),
+        day = date_sel
+      ),
+      # Runoff
+      day_files_checker(
+        folder = file.path(path, 'Rdata', 'Maps', 'Current', '200m', 'SPWB', 'Runoff'),
+        day = date_sel
+      ),
+      # Theta
+      day_files_checker(
+        folder = file.path(path, 'Rdata', 'Maps', 'Current', '200m', 'SPWB', 'Theta'),
+        day = date_sel
       )
     ) %>%
       purrr::map(raster_brick_creation) %>%
       raster::stack()
 
     raster_low <- c(
-      list.files(
-        file.path(
-          path, 'Rdata', 'Maps', 'Current', '1km', 'DroughtStress', 'DDS', 'Overall'
-        ), full.names = TRUE, pattern = date_sel, recursive = TRUE
+      # NDD
+      day_files_checker(
+        folder = file.path(path, 'Rdata', 'Maps', 'Current', '1km', 'DroughtStress', 'NDD', 'Overall'),
+        day = date_sel
       ),
-      list.files(
-        file.path(
-          path, 'Rdata', 'Maps', 'Current', '1km', 'DroughtStress', 'NDD', 'Overall'
-        ), full.names = TRUE, pattern = date_sel, recursive = TRUE
+      # DDS
+      day_files_checker(
+        folder = file.path(path, 'Rdata', 'Maps', 'Current', '1km', 'DroughtStress', 'DDS', 'Overall'),
+        day = date_sel
       ),
-      list.files(
-        file.path(
-          path, 'Rdata', 'Maps', 'Current', '1km', 'SPWB'
-        ), full.names = TRUE, pattern = date_sel, recursive = TRUE
+      # DeepDrainage
+      day_files_checker(
+        folder = file.path(path, 'Rdata', 'Maps', 'Current', '1km', 'SPWB', 'DeepDrainage'),
+        day = date_sel
+      ),
+      # Eplant
+      day_files_checker(
+        folder = file.path(path, 'Rdata', 'Maps', 'Current', '1km', 'SPWB', 'Eplant'),
+        day = date_sel
+      ),
+      # Esoil
+      day_files_checker(
+        folder = file.path(path, 'Rdata', 'Maps', 'Current', '1km', 'SPWB', 'Esoil'),
+        day = date_sel
+      ),
+      # LAI
+      day_files_checker(
+        folder = file.path(path, 'Rdata', 'Maps', 'Current', '1km', 'SPWB', 'LAI'),
+        day = date_sel
+      ),
+      # NetPrec
+      day_files_checker(
+        folder = file.path(path, 'Rdata', 'Maps', 'Current', '1km', 'SPWB', 'NetPrec'),
+        day = date_sel
+      ),
+      # PET
+      day_files_checker(
+        folder = file.path(path, 'Rdata', 'Maps', 'Current', '1km', 'SPWB', 'PET'),
+        day = date_sel
+      ),
+      # Psi
+      day_files_checker(
+        folder = file.path(path, 'Rdata', 'Maps', 'Current', '1km', 'SPWB', 'Psi'),
+        day = date_sel
+      ),
+      # Rain
+      day_files_checker(
+        folder = file.path(path, 'Rdata', 'Maps', 'Current', '1km', 'SPWB', 'Rain'),
+        day = date_sel
+      ),
+      # REW
+      day_files_checker(
+        folder = file.path(path, 'Rdata', 'Maps', 'Current', '1km', 'SPWB', 'REW'),
+        day = date_sel
+      ),
+      # Runoff
+      day_files_checker(
+        folder = file.path(path, 'Rdata', 'Maps', 'Current', '1km', 'SPWB', 'Runoff'),
+        day = date_sel
+      ),
+      # Theta
+      day_files_checker(
+        folder = file.path(path, 'Rdata', 'Maps', 'Current', '1km', 'SPWB', 'Theta'),
+        day = date_sel
       )
     ) %>%
       purrr::map(raster_brick_creation) %>%
       raster::stack()
 
     raster_smooth <- c(
-      list.files(
-        file.path(
-          path, 'Rdata', 'Maps', 'Current', 'Smoothed', 'DroughtStress', 'DDS', 'Overall'
-        ), full.names = TRUE, pattern = date_sel, recursive = TRUE
+      # NDD
+      day_files_checker(
+        folder = file.path(path, 'Rdata', 'Maps', 'Current', 'Smoothed', 'DroughtStress', 'NDD', 'Overall'),
+        day = date_sel
       ),
-      list.files(
-        file.path(
-          path, 'Rdata', 'Maps', 'Current', 'Smoothed', 'DroughtStress', 'NDD', 'Overall'
-        ), full.names = TRUE, pattern = date_sel, recursive = TRUE
+      # DDS
+      day_files_checker(
+        folder = file.path(path, 'Rdata', 'Maps', 'Current', 'Smoothed', 'DroughtStress', 'DDS', 'Overall'),
+        day = date_sel
       ),
-      list.files(
-        file.path(
-          path, 'Rdata', 'Maps', 'Current', 'Smoothed', 'SPWB'
-        ), full.names = TRUE, pattern = date_sel, recursive = TRUE
+      # DeepDrainage
+      day_files_checker(
+        folder = file.path(path, 'Rdata', 'Maps', 'Current', 'Smoothed', 'SPWB', 'DeepDrainage'),
+        day = date_sel
+      ),
+      # Eplant
+      day_files_checker(
+        folder = file.path(path, 'Rdata', 'Maps', 'Current', 'Smoothed', 'SPWB', 'Eplant'),
+        day = date_sel
+      ),
+      # Esoil
+      day_files_checker(
+        folder = file.path(path, 'Rdata', 'Maps', 'Current', 'Smoothed', 'SPWB', 'Esoil'),
+        day = date_sel
+      ),
+      # LAI
+      day_files_checker(
+        folder = file.path(path, 'Rdata', 'Maps', 'Current', 'Smoothed', 'SPWB', 'LAI'),
+        day = date_sel
+      ),
+      # NetPrec
+      day_files_checker(
+        folder = file.path(path, 'Rdata', 'Maps', 'Current', 'Smoothed', 'SPWB', 'NetPrec'),
+        day = date_sel
+      ),
+      # PET
+      day_files_checker(
+        folder = file.path(path, 'Rdata', 'Maps', 'Current', 'Smoothed', 'SPWB', 'PET'),
+        day = date_sel
+      ),
+      # Psi
+      day_files_checker(
+        folder = file.path(path, 'Rdata', 'Maps', 'Current', 'Smoothed', 'SPWB', 'Psi'),
+        day = date_sel
+      ),
+      # Rain
+      day_files_checker(
+        folder = file.path(path, 'Rdata', 'Maps', 'Current', 'Smoothed', 'SPWB', 'Rain'),
+        day = date_sel
+      ),
+      # REW
+      day_files_checker(
+        folder = file.path(path, 'Rdata', 'Maps', 'Current', 'Smoothed', 'SPWB', 'REW'),
+        day = date_sel
+      ),
+      # Runoff
+      day_files_checker(
+        folder = file.path(path, 'Rdata', 'Maps', 'Current', 'Smoothed', 'SPWB', 'Runoff'),
+        day = date_sel
+      ),
+      # Theta
+      day_files_checker(
+        folder = file.path(path, 'Rdata', 'Maps', 'Current', 'Smoothed', 'SPWB', 'Theta'),
+        day = date_sel
       )
     ) %>%
       purrr::map(raster_brick_creation) %>%

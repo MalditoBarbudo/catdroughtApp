@@ -249,6 +249,8 @@ catdrought_app <- function(
       # band
       band_sel <- switch(
         input$var_daily,
+        "NDD" = 1,
+        "DDS" = 2,
         "DeepDrainage" = 3,
         "Eplant" = 4,
         "Esoil" = 5,
@@ -259,9 +261,7 @@ catdrought_app <- function(
         "Rain" = 10,
         "REW" = 11,
         "Runoff" = 12,
-        "Theta" = 13,
-        "DDS" = 2,
-        "NDD" = 1
+        "Theta" = 13
       )
 
       # resolution
