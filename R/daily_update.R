@@ -25,12 +25,15 @@ day_files_checker <- function(folder, day) {
 #'
 #' @param user
 #' @param pass
-#' @param dry
+#' @param port
+#' @param path
+#' @param changed
+#' @param added
 #'
 #' @export
 catdrought_daily_update <- function(
   user = 'guest', pass = 'guest', port = 'staging',
-  path = '/home/vgranda/LFC/10_serverproces_data/CatDrought', dry = TRUE
+  path = '/home/vgranda/LFC/10_serverproces_data/CatDrought', changed = TRUE, added = TRUE
 ) {
 
   port <- switch (port,
@@ -80,7 +83,8 @@ catdrought_daily_update <- function(
   changes_object <- utils::changedFiles(fileSnapshot_cached, fileSnapshot_actual)
 
   dates_to_upload <- c(
-    changes_object$added, changes_object$changed
+    if (isTRUE(added)) {changes_object$added} else {character()},
+    if (isTRUE(changed)) {changes_object$changed} else {character()}
   ) %>%
     stringr::str_sub(-14, -5) %>%
     unique()
