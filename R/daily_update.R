@@ -82,9 +82,28 @@ catdrought_daily_update <- function(
 
   changes_object <- utils::changedFiles(fileSnapshot_cached, fileSnapshot_actual)
 
+  added_rdas <- changes_object$added %>%
+    magrittr::extract(
+      stringr::str_detect(
+        changes_object$added,
+        pattern = "Fagus|Pinus|Quercus",
+        negate = TRUE
+      )
+    )
+
+  changed_rdas <- changes_object$changed %>%
+    magrittr::extract(
+      stringr::str_detect(
+        changes_object$added,
+        pattern = "Fagus|Pinus|Quercus",
+        negate = TRUE
+      )
+    )
+
+
   dates_to_upload <- c(
-    if (isTRUE(added)) {changes_object$added} else {character()},
-    if (isTRUE(changed)) {changes_object$changed} else {character()}
+    if (isTRUE(added)) {added_rdas} else {character()},
+    if (isTRUE(changed)) {changed_rdas} else {character()}
   ) %>%
     stringr::str_sub(-14, -5) %>%
     unique()
