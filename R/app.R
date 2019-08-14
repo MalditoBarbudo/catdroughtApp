@@ -222,9 +222,13 @@ catdrought_app <- function(
               value = 'series',
               dygraphs::dygraphOutput('trends_daily') %>%
                 shinyWidgets::addSpinner(spin = 'cube', color = '#26a65b'),
-              shiny::downloadButton(
-                'download_series_daily',
-                translate_app('download_series_label', lang_declared)
+              shiny::br(),
+              shiny::column(
+                2, offset = 10,
+                shiny::downloadButton(
+                  'download_series_daily',
+                  translate_app('download_series_label', lang_declared)
+                )
               )
             )
           )
