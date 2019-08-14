@@ -644,7 +644,8 @@ catdrought_app <- function(
               ylab = glue::glue("{translate_app(var_id, lang())}")
             ) %>%
             dygraphs::dySeries(
-              'marker_value', label = clicked_marker$id
+              'marker_value', label = clicked_marker$id,
+              color = '#448714', strokeWidth = 2
             )
         } else {
           # polygon id
@@ -661,7 +662,8 @@ catdrought_app <- function(
               ylab = glue::glue("{translate_app(var_id, lang())}")
             ) %>%
             dygraphs::dySeries(
-              c('low', 'avg_pval', 'high'), label = poly_id
+              c('low', 'avg_pval', 'high'), label = poly_id,
+              color = '#448714', strokeWidth = 2
             )
         }
 
@@ -677,6 +679,10 @@ catdrought_app <- function(
           dygraphs::dygraph(
             main = glue::glue("{translate_app(var_id, lang())} - {glue::glue(translate_app('daily_trends_other_title', lang()))}"),
             ylab = glue::glue("{translate_app(var_id, lang())}")
+          ) %>%
+          dygraphs::dySeries(
+            c('pixel_value'), label = 'Pixel',
+            color = '#448714', strokeWidth = 2
           )
       }
 
