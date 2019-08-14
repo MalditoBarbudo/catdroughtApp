@@ -640,7 +640,7 @@ catdrought_app <- function(
             dplyr::select(marker_value) %>%
             xts::as.xts(order.by = plot_data$day) %>%
             dygraphs::dygraph(
-              main = glue::glue("{translate_app(var_id, lang())} - {glue::glue(translate_app('daily_trends_ifn_title', lang()))}]"),
+              main = glue::glue("{translate_app(var_id, lang())} - {glue::glue(translate_app('daily_trends_ifn_title', lang()))}"),
               ylab = glue::glue("{translate_app(var_id, lang())}")
             ) %>%
             dygraphs::dySeries(
