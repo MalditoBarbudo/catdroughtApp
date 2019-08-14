@@ -7,10 +7,10 @@
 catdrought_daily_update(user = "guest", pass = "guest",
   port = "staging",
   path = "/home/vgranda/LFC/10_serverproces_data/CatDrought",
-  dry = TRUE)
+  changed = TRUE, added = TRUE)
 }
 \arguments{
-\item{dry}{}
+\item{added}{}
 }
 \description{
 Usually, this function will update the database with the daily data from serverprocess

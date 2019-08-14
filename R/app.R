@@ -48,6 +48,10 @@ catdrought_app <- function(
       # custom css
       shiny::includeCSS(
         system.file('resources', 'catdrought.css', package = 'catdroughtApp')
+      ),
+      # corporative image css
+      shiny::includeCSS(
+        system.file('resources', 'corp_image.css', package = 'catdroughtApp')
       )
     ),
 
