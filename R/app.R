@@ -124,14 +124,14 @@ catdrought_app <- function(
       ## choices
 
       ####### correct way of doing it if we have all the dates
-      # date_daily_choices <- seq(
-      #   lubridate::ymd(Sys.Date() - 365), lubridate::ymd(Sys.Date() - 1),
-      #   by = 'days'
-      # )
-      ####### incorrect way of doing it, but working with the local sample of data I have
       date_daily_choices <- seq(
-        lubridate::ymd("2019-01-01"), lubridate::ymd("2019-06-02"), by = 'days'
+        lubridate::ymd(Sys.Date() - 366), lubridate::ymd(Sys.Date() - 1),
+        by = 'days'
       )
+      ####### incorrect way of doing it, but working with the local sample of data I have
+      # date_daily_choices <- seq(
+      #   lubridate::ymd("2019-01-01"), lubridate::ymd(Sys.Date() - 1), by = 'days'
+      # )
       ## TODO change to the correct way when available
 
       climate_vars <- c("Rain", "PET") %>%
@@ -162,15 +162,15 @@ catdrought_app <- function(
           # date sel
           shiny::dateInput(
             'date_daily', translate_app('date_daily_label', lang_declared),
-            value = date_daily_choices[1],
+            value = date_daily_choices[length(date_daily_choices)],
             min = date_daily_choices[1],
             max = date_daily_choices[length(date_daily_choices)],
             # TODO dates disabled for 2018, as the data is missing. This must be
             # removed when we have all the year data available
-            # datesdisabled = seq(
-            #   lubridate::ymd(date_daily_choices[1]), lubridate::ymd("2018-12-31"),
-            #   by = 'days'
-            # ),
+            datesdisabled = seq(
+              lubridate::ymd(date_daily_choices[1]), lubridate::ymd("2018-12-31"),
+              by = 'days'
+            ),
             weekstart = 1, language = dates_lang
           ),
           # polygon sel
