@@ -164,7 +164,9 @@ catdrought_app <- function(
             'date_daily', translate_app('date_daily_label', lang_declared),
             value = date_daily_choices[length(date_daily_choices)],
             min = date_daily_choices[1],
-            max = date_daily_choices[length(date_daily_choices)],
+            # max setted to 26/09/2019 because data shortage
+            max = lubridate::ymd("2019-09-26"),
+            # max = date_daily_choices[length(date_daily_choices)],
             # TODO dates disabled for 2018, as the data is missing. This must be
             # removed when we have all the year data available
             datesdisabled = seq(
