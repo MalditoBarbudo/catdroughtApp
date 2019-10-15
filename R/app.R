@@ -291,35 +291,24 @@ catdrought_app <- function(
       # temp conn and raster getter
       # browser()
       temp_postgresql_conn <- pool::poolCheckout(catdrought_db)
-      raster_res <- rpostgis::pgGetRast(
-        temp_postgresql_conn, name = c('daily', table_name), bands = band_sel
+      raster_res <- try(
+        rpostgis::pgGetRast(
+          temp_postgresql_conn, name = c('daily', table_name), bands = band_sel
+        )
       )
       pool::poolReturn(temp_postgresql_conn)
 
-      return(raster_res)
+      shiny::validate(
+        shiny::need(!inherits(raster_res, "try-error"), 'No table with the selected data found')
+      )
 
 
-      # switch for transforming the date to band
-      ####### correct way of doing it if we have all the dates
-      # dates_avail <- seq(
-      #   lubridate::ymd(Sys.Date() - 365), lubridate::ymd(Sys.Date() - 1),
-      #   by = 'days'
-      # )
-      ####### incorrect way of doing it, but working for the local sample I have at the moment
-      # dates_avail <- seq(
-      #   lubridate::ymd("2019-01-01"), lubridate::ymd("2019-06-02"), by = 'days'
-      # ) ## TODO change to the correct way when available
-      # band_sel <- which(input$date_daily == dates_avail)
-      # selected_var <- input$var_daily
-      #
-      # # raster intermediates
-      # temp_postgresql_conn <- pool::poolCheckout(catdrought_db)
       # raster_res <- rpostgis::pgGetRast(
-      #   temp_postgresql_conn, selected_var, bands = band_sel
+      #   temp_postgresql_conn, name = c('daily', table_name), bands = band_sel
       # )
       # pool::poolReturn(temp_postgresql_conn)
-      #
-      # return(raster_res)
+
+      return(raster_res)
     })
 
     ## map output ####
