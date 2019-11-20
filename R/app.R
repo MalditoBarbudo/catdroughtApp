@@ -89,9 +89,10 @@ catdrought_app <- function(
   ## SERVER ####
   server <- function(input, output, session) {
     ## debug #####
-    # output$debug1 <- shiny::renderPrint({
-    #   input$map_daily_marker_click
-    # })
+    output$debug1 <- shiny::renderPrint({
+      valid_flag <- attr(raster_selected_daily, "observable")$.invalidated
+      paste('This function is invalidated:', valid_flag)
+    })
     # output$debug2 <- shiny::renderPrint({
     #   map_reactives$map_click
     # })
@@ -200,17 +201,17 @@ catdrought_app <- function(
         shiny::mainPanel(
 
           ########################################################### debug ####
-          # shiny::absolutePanel(
-          #   id = 'debug', class = 'panel panel-default', fixed = TRUE,
-          #   draggable = TRUE, width = 640, height = 'auto',
-          #   # top = 100, left = 100, rigth = 'auto', bottom = 'auto',
-          #   # top = 'auto', left = 'auto', right = 100, bottom = 100,
-          #   top = 60, left = 'auto', right = 50, bottom = 'auto',
-          #
-          #   shiny::textOutput('debug1'),
-          #   shiny::textOutput('debug2'),
-          #   shiny::textOutput('debug3')
-          # ),
+          shiny::absolutePanel(
+            id = 'debug', class = 'panel panel-default', fixed = TRUE,
+            draggable = TRUE, width = 640, height = 'auto',
+            # top = 100, left = 100, rigth = 'auto', bottom = 'auto',
+            # top = 'auto', left = 'auto', right = 100, bottom = 100,
+            top = 60, left = 'auto', right = 50, bottom = 'auto',
+
+            shiny::textOutput('debug1'),
+            shiny::textOutput('debug2'),
+            shiny::textOutput('debug3')
+          ),
           ####################################################### end debug ####
 
           shiny::tabsetPanel(
@@ -247,7 +248,7 @@ catdrought_app <- function(
     raster_selected_daily <- shiny::reactive({
 
       shiny::validate(
-        shiny::need(input$var_daily, 'No variable selected'),
+        # shiny::need(input$var_daily, 'No variable selected'),
         shiny::need(input$date_daily, 'No date selected'),
         shiny::need(input$resolution_daily, 'No resolution selected')
       )
@@ -257,23 +258,23 @@ catdrought_app <- function(
       date_sel <- input$date_daily
       date_sel_parsed <- stringr::str_remove_all(date_sel, pattern = '-')
 
-      # band
-      band_sel <- switch(
-        input$var_daily,
-        "NDD" = 1,
-        "DDS" = 2,
-        "DeepDrainage" = 3,
-        "Eplant" = 4,
-        "Esoil" = 5,
-        "LAI" = 6,
-        "NetPrec" = 7,
-        "PET" = 8,
-        "Psi" = 9,
-        "Rain" = 10,
-        "REW" = 11,
-        "Runoff" = 12,
-        "Theta" = 13
-      )
+      # # band
+      # band_sel <- switch(
+      #   input$var_daily,
+      #   "DDS" = 1,
+      #   "NDD" = 2,
+      #   "DeepDrainage" = 3,
+      #   "Eplant" = 4,
+      #   "Esoil" = 5,
+      #   "LAI" = 6,
+      #   "NetPrec" = 7,
+      #   "PET" = 8,
+      #   "Psi" = 9,
+      #   "Rain" = 10,
+      #   "REW" = 11,
+      #   "Runoff" = 12,
+      #   "Theta" = 13
+      # )
 
       # resolution
       resolution_sel <- switch(
@@ -293,8 +294,12 @@ catdrought_app <- function(
       temp_postgresql_conn <- pool::poolCheckout(catdrought_db)
       raster_res <- try(
         rpostgis::pgGetRast(
-          temp_postgresql_conn, name = c('daily', table_name), bands = band_sel
-        )
+          temp_postgresql_conn, name = c('daily', table_name), bands = 1:13
+        ) %>%
+          magrittr::set_names(., c(
+            "DDS", "NDD", "DeepDrainage", "Eplant", "Esoil", "LAI",
+            "NetPrec", "PET", "Psi", "Rain", "REW", "Runoff", "Theta"
+          ))
       )
       pool::poolReturn(temp_postgresql_conn)
 
@@ -302,24 +307,22 @@ catdrought_app <- function(
         shiny::need(!inherits(raster_res, "try-error"), 'No table with the selected data found')
       )
 
-
-      # raster_res <- rpostgis::pgGetRast(
-      #   temp_postgresql_conn, name = c('daily', table_name), bands = band_sel
-      # )
-      # pool::poolReturn(temp_postgresql_conn)
-
       return(raster_res)
     })
 
     ## map output ####
     output$map_daily <- leaflet::renderLeaflet({
 
-      raster_daily <- raster_selected_daily()
+      # browser()
       var_daily_sel <- input$var_daily
+      raster_daily <- raster_selected_daily() %>%
+        raster::subset(var_daily_sel)
 
       palette <- leaflet::colorNumeric(
         palette = palettes_dictionary[[var_daily_sel]][['pal']],
-        domain = raster::values(raster_daily),
+        domain = c(palettes_dictionary[[var_daily_sel]][['min']],
+                   palettes_dictionary[[var_daily_sel]][['max']]),
+        # domain = raster::values(raster_daily),
         na.color = 'transparent',
         reverse = palettes_dictionary[[var_daily_sel]][['rev']]
       )
@@ -346,7 +349,12 @@ catdrought_app <- function(
           colors = palette, opacity = 1
         ) %>%
         leaflet::addLegend(
-          pal = palette, values = raster::values(raster_daily),
+          pal = palette,
+          values = c(
+            palettes_dictionary[[var_daily_sel]][['min']],
+            raster::values(raster_daily),
+            palettes_dictionary[[var_daily_sel]][['max']]
+          ),
           title = translate_app(input$var_daily, lang()),
           position = 'bottomright',
           opacity = 1
@@ -448,8 +456,8 @@ catdrought_app <- function(
         "REW" = 11,
         "Runoff" = 12,
         "Theta" = 13,
-        "DDS" = 2,
-        "NDD" = 1
+        "DDS" = 1,
+        "NDD" = 2
       )
 
       # resolution
@@ -520,8 +528,8 @@ catdrought_app <- function(
         "REW" = 11,
         "Runoff" = 12,
         "Theta" = 13,
-        "DDS" = 2,
-        "NDD" = 1
+        "DDS" = 1,
+        "NDD" = 2
       )
 
       # resolution
@@ -583,8 +591,8 @@ catdrought_app <- function(
         "REW" = 11,
         "Runoff" = 12,
         "Theta" = 13,
-        "DDS" = 2,
-        "NDD" = 1
+        "DDS" = 1,
+        "NDD" = 2
       )
 
       # resolution
