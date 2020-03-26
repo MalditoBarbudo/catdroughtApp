@@ -143,8 +143,6 @@ catdrought_app <- function(
       drought_stress_vars <- c("DDS", "NDD") %>%
         magrittr::set_names(translate_app(., lang_declared))
 
-      browser()
-
       shiny::sidebarLayout(
         # sidebar
         shiny::sidebarPanel(
