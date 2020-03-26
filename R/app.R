@@ -143,6 +143,8 @@ catdrought_app <- function(
       drought_stress_vars <- c("DDS", "NDD") %>%
         magrittr::set_names(translate_app(., lang_declared))
 
+      browser()
+
       shiny::sidebarLayout(
         # sidebar
         shiny::sidebarPanel(
@@ -171,7 +173,8 @@ catdrought_app <- function(
             # TODO dates disabled for 2018, as the data is missing. This must be
             # removed when we have all the year data available
             datesdisabled = seq(
-              lubridate::ymd(date_daily_choices[1]), lubridate::ymd("2018-12-31"),
+              lubridate::ymd("2018-12-31"),
+              lubridate::ymd(date_daily_choices[1]),
               by = 'days'
             ),
             weekstart = 1, language = dates_lang
