@@ -10,9 +10,9 @@ tibble::tribble(
 
   # var_daily sel
   "var_daily_label", 'Tria la variable', 'Choose variable', 'Elige la variable',
-  "Rain", "Precipitació (mm)", "Precipitation (mm)", "Precipitación (mm)",
+  # "Rain", "Precipitació (mm)", "Precipitation (mm)", "Precipitación (mm)",
   "PET", "Evapo-transpiració potencial (mm)", "Potential evapo-transpiration (mm)", "Evap-transpiración potencial (mm)",
-  "NetPrec", "Precipitació neta (mm)", "Net precipitation (mm)", "Precipitación neta (mm)",
+  # "NetPrec", "Precipitació neta (mm)", "Net precipitation (mm)", "Precipitación neta (mm)",
   "Eplant", "Transpiració", "Plant transpiration (mm)", "Transpiración plantas (mm)",
   "Esoil", "Evaporació del sòl", "Soil evaporation (mm)", "Evaporación del suelo (mm)",
   "Runoff", "Escorrentia (mm)", "Run-off (mm)", "Escorrentía (mm)",
@@ -20,8 +20,10 @@ tibble::tribble(
   "REW", "Aigua extraïble relativa [0-1]", "Relative extractable water [0-1]", "Agua extraible relativa [0-1]",
   "Theta", "Contingut hídric del sòl (%)", "Soil moisture content (%)", "Contenido hídrico del suelo (%)",
   "Psi", "Potencial hídric del sòl (-MPa)", "Soil water potential (-MPa)", "Potencial hídrico del suelo (-MPa)",
-  "NDD", "Intensitat de l'estrès [0-1]", "Stress intensity [0-1]", "Intensidad del estrés [0-1]",
+  # "NDD", "Intensitat de l'estrès [0-1]", "Stress intensity [0-1]", "Intensidad del estrés [0-1]",
   "DDS", "Duració de l'estrès (dies)", "Stress duration (days)", "Duración del estrés (días)",
+  "LAI", "Índex d'àrea foliar", "Leaf area index", "Índice de área foliar",
+  "Infiltration", "Infiltració", "Infiltration", "Infiltración",
   'Soil moisture', "Humitat del sòl", 'Soil moisture', "Humedad del suelo",
   'Water balance', "Balanç hídric", 'Water balance', "Balance hídrico",
   'Climate', "Clima", 'Climate', "Clima",

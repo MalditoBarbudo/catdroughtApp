@@ -17,37 +17,25 @@ watersheds_polygons <- sf::read_sf('data-raw/shapefiles/Concajs.shp') %>%
   dplyr::select(poly_id = CONCA, geometry) %>%
   sf::st_cast('MULTIPOLYGON') %>%
   dplyr::group_by(poly_id) %>%
-  dplyr::summarise_all(dplyr::first)
+  dplyr::summarise_all(sf::st_combine)
 
 ## nfi plots ####
-nfidb <- tidyNFI::nfi_connect(
-  user = 'guest', password = 'guest', host = '127.0.0.1', port = NULL, dbname = 'tururu'
-)
+nfidb <- lfcdata::nfi()
 
-nfi4_plots <- dplyr::tbl(nfidb, 'PLOTS') %>%
-  dplyr::select(
-    plot_id, coords_longitude, coords_latitude, presence_NFI_4
-  ) %>%
-  dplyr::filter(
-    presence_NFI_4
-  ) %>%
-  dplyr::collect() %>%
+nfi4_plots <- nfidb$get_data('plot_nfi_4_results') %>%
+  dplyr::select(plot_id) %>%
+  dplyr::left_join(nfidb$get_data('plots')) %>%
+  dplyr::select(plot_id, coords_longitude, coords_latitude) %>%
   sf::st_as_sf(
     coords = c('coords_longitude', 'coords_latitude'),
-    crs = '+proj=longlat +datum=WGS84'
+    crs = 4326
   )
 
-nfi3_plots <- dplyr::tbl(nfidb, 'PLOTS') %>%
-  dplyr::select(
-    plot_id, coords_longitude, coords_latitude, presence_NFI_3
-  ) %>%
-  dplyr::filter(
-    presence_NFI_3
-  ) %>%
-  dplyr::collect() %>%
+nfi3_plots <- nfidb$get_data('plot_nfi_3_results') %>%
+  dplyr::select(plot_id) %>%
+  dplyr::left_join(nfidb$get_data('plots')) %>%
+  dplyr::select(plot_id, coords_longitude, coords_latitude) %>%
   sf::st_as_sf(
     coords = c('coords_longitude', 'coords_latitude'),
-    crs = '+proj=longlat +datum=WGS84'
+    crs = 4326
   )
-
-tidyNFI::nfi_close(nfidb)

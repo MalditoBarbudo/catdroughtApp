@@ -124,24 +124,23 @@ $(document).on('shiny:disconnected', function(event) {
 
       ## choices
 
-      ####### correct way of doing it if we have all the dates
       date_daily_choices <- seq(
         lubridate::ymd(Sys.Date() - 366), lubridate::ymd(Sys.Date() - 1),
         by = 'days'
       )
-      ####### incorrect way of doing it, but working with the local sample of data I have
-      # date_daily_choices <- seq(
-      #   lubridate::ymd("2019-01-01"), lubridate::ymd(Sys.Date() - 1), by = 'days'
-      # )
-      ## TODO change to the correct way when available
 
-      climate_vars <- c("Rain", "PET") %>%
+      # variable names
+      # climate: 'PET'
+      # fwb: 'LAI', 'Eplant', 'Esoil',  'Runoff', 'DeepDrainage'
+      # soil_moisture: 'Psi', 'REW', 'Theta', 'Infiltration',
+      # drought_stress: 'DDS'
+      climate_vars <- c("PET") %>%
         magrittr::set_names(translate_app(., lang_declared))
-      fwb_vars <- c("NetPrec", "Eplant", "Esoil", "Runoff", "DeepDrainage") %>%
+      fwb_vars <- c('LAI', 'Eplant', 'Esoil',  'Runoff', 'DeepDrainage') %>%
         magrittr::set_names(translate_app(., lang_declared))
-      soil_moisture_vars <- c("REW", "Theta", "Psi") %>%
+      soil_moisture_vars <- c("REW", "Theta", "Psi", "Infiltration") %>%
         magrittr::set_names(translate_app(., lang_declared))
-      drought_stress_vars <- c("DDS", "NDD") %>%
+      drought_stress_vars <- c("DDS") %>%
         magrittr::set_names(translate_app(., lang_declared))
 
       shiny::sidebarLayout(
@@ -163,19 +162,9 @@ $(document).on('shiny:disconnected', function(event) {
           # date sel
           shiny::dateInput(
             'date_daily', translate_app('date_daily_label', lang_declared),
-            # max and value setted to 24/09/2019 because data shortage
-            # value = date_daily_choices[length(date_daily_choices)],
             value = lubridate::ymd(Sys.Date() - 1),
             min = date_daily_choices[1],
-            # max = lubridate::ymd("2019-09-24"),
             max = date_daily_choices[length(date_daily_choices)],
-            # TODO dates disabled for 2018, as the data is missing. This must be
-            # removed when we have all the year data available
-            # datesdisabled = seq(
-            #   lubridate::ymd("2018-12-31"),
-            #   lubridate::ymd(date_daily_choices[1]),
-            #   by = 'days'
-            # ),
             weekstart = 1, language = dates_lang
           ),
           # polygon sel
@@ -249,67 +238,19 @@ $(document).on('shiny:disconnected', function(event) {
     raster_selected_daily <- shiny::reactive({
 
       shiny::validate(
-        shiny::need(input$var_daily, 'No variable selected'),
+        # shiny::need(input$var_daily, 'No variable selected'),
         shiny::need(input$date_daily, 'No date selected'),
         shiny::need(input$resolution_daily, 'No resolution selected')
       )
-      # browser()
 
       # date
-      date_sel <- input$date_daily
-      date_sel_parsed <- stringr::str_remove_all(date_sel, pattern = '-')
-
-      # band
-      band_sel <- switch(
-        input$var_daily,
-        "NDD" = 1,
-        "DDS" = 2,
-        "DeepDrainage" = 3,
-        "Eplant" = 4,
-        "Esoil" = 5,
-        "LAI" = 6,
-        "NetPrec" = 7,
-        "PET" = 8,
-        "Psi" = 9,
-        "Rain" = 10,
-        "REW" = 11,
-        "Runoff" = 12,
-        "Theta" = 13
-      )
+      date_sel <- as.character(input$date_daily)
 
       # resolution
-      resolution_sel <- switch(
-        input$resolution_daily,
-        'Smoothed' = 'smooth',
-        '1km' = 'low',
-        '200m' = 'high'
-      )
+      resolution_sel <- tolower(input$resolution_daily)
 
-      # table name
-      table_name <- glue::glue(
-        "catdrought_{resolution_sel}_{date_sel_parsed}"
-      )
-
-      # temp conn and raster getter
-      # browser()
-      temp_postgresql_conn <- pool::poolCheckout(catdrought_db)
-      raster_res <- try(
-        rpostgis::pgGetRast(
-          temp_postgresql_conn, name = c('daily', table_name), bands = band_sel
-        )
-      )
-      pool::poolReturn(temp_postgresql_conn)
-
-      shiny::validate(
-        shiny::need(!inherits(raster_res, "try-error"), 'No table with the selected data found')
-      )
-
-
-      # raster_res <- rpostgis::pgGetRast(
-      #   temp_postgresql_conn, name = c('daily', table_name), bands = band_sel
-      # )
-      # pool::poolReturn(temp_postgresql_conn)
-
+      # raster_res
+      raster_res <- catdroughtdb$get_raster(date_sel, resolution_sel, 'raster')
       return(raster_res)
     })
 
@@ -319,9 +260,15 @@ $(document).on('shiny:disconnected', function(event) {
       raster_daily <- raster_selected_daily()
       var_daily_sel <- input$var_daily
 
+      leaflet_raster <- raster_daily[[var_daily_sel]]
+
       palette <- leaflet::colorNumeric(
         palette = palettes_dictionary[[var_daily_sel]][['pal']],
-        domain = raster::values(raster_daily),
+        # domain = c(
+        #   palettes_dictionary[[var_daily_sel]][['min']],
+        #   palettes_dictionary[[var_daily_sel]][['max']]
+        # ),
+        domain = raster::values(leaflet_raster),
         na.color = 'transparent',
         reverse = palettes_dictionary[[var_daily_sel]][['rev']]
       )
@@ -344,11 +291,11 @@ $(document).on('shiny:disconnected', function(event) {
           options = leaflet::layersControlOptions(collapsed = FALSE, autoZIndex = FALSE)
         ) %>%
         leaflet::addRasterImage(
-          raster_daily, project = TRUE, group = 'raster',
+          leaflet_raster, project = FALSE, group = 'raster',
           colors = palette, opacity = 1
         ) %>%
         leaflet::addLegend(
-          pal = palette, values = raster::values(raster_daily),
+          pal = palette, values = raster::values(leaflet_raster),
           title = translate_app(input$var_daily, lang()),
           position = 'bottomright',
           opacity = 1
@@ -415,17 +362,13 @@ $(document).on('shiny:disconnected', function(event) {
         shiny::need(input$map_daily_shape_click, 'no click on map')
       )
 
-      # browser()
-
       clicked_poly <- input$map_daily_shape_click
       polygon_object <- rlang::eval_tidy(
         rlang::sym(glue::glue("{tolower(input$display_daily)}_polygons"))
       ) %>%
         dplyr::filter(
           poly_id == clicked_poly$id
-        ) %>%
-        dplyr::pull(geometry) %>%
-        sf::st_as_text()
+        )
 
       return(polygon_object)
     })
@@ -437,61 +380,15 @@ $(document).on('shiny:disconnected', function(event) {
       polygon_sel <- clicked_poly()
 
       # band
-      band_sel <- switch(
-        input$var_daily,
-        "DeepDrainage" = 3,
-        "Eplant" = 4,
-        "Esoil" = 5,
-        "LAI" = 6,
-        "NetPrec" = 7,
-        "PET" = 8,
-        "Psi" = 9,
-        "Rain" = 10,
-        "REW" = 11,
-        "Runoff" = 12,
-        "Theta" = 13,
-        "DDS" = 2,
-        "NDD" = 1
-      )
+      var_sel <- input$var_daily
 
       # resolution
-      resolution_sel <- switch(
-        input$resolution_daily,
-        'Smoothed' = 'smooth',
-        '1km' = 'low',
-        '200m' = 'high'
+      resolution_sel <- tolower(input$resolution_daily)
+
+      # res
+      res <- catdroughtdb$get_current_time_series(
+        polygon_sel, var_sel, resolution_sel
       )
-
-      # table name
-      table_name <- glue::glue(
-        "daily.catdrought_{resolution_sel}"
-      )
-
-
-
-      # data query to get the dump of the data
-      data_query <- glue::glue(
-        "
-          with
-          feat as (select st_geomfromtext('{polygon_sel}', 4326) as geom),
-          b_stats as (select day, (stats).* from (select day, ST_SummaryStats(st_clip(rast, {band_sel}, geom, true)) as stats
-            from {table_name}
-            inner join feat
-            on st_intersects(feat.geom,rast)
-          ) as foo
-          )
-          select
-            day,
-            sum(mean*count)/sum(count) as avg_pval,
-            sqrt(sum(stddev*stddev*count)/sum(count)) as se_pval
-          from b_stats
-          where count > 0
-          group by day;
-        "
-      )
-
-      res <- pool::dbGetQuery(catdrought_db, data_query)
-
       return(res)
 
     })
@@ -507,54 +404,26 @@ $(document).on('shiny:disconnected', function(event) {
       )
 
       clicked_pixel <- input$map_daily_click
+      point_sel <- tibble::tibble(
+        point_id = 'clicked_coords',
+        long = clicked_pixel$lng,
+        lat = clicked_pixel$lat
+      ) %>%
+        sf::st_as_sf(
+          coords = c('long', 'lat'),
+          crs = 4326
+        )
 
       # band
-      band_sel <- switch(
-        input$var_daily,
-        "DeepDrainage" = 3,
-        "Eplant" = 4,
-        "Esoil" = 5,
-        "LAI" = 6,
-        "NetPrec" = 7,
-        "PET" = 8,
-        "Psi" = 9,
-        "Rain" = 10,
-        "REW" = 11,
-        "Runoff" = 12,
-        "Theta" = 13,
-        "DDS" = 2,
-        "NDD" = 1
-      )
+      var_sel <- input$var_daily
 
       # resolution
-      resolution_sel <- switch(
-        input$resolution_daily,
-        'Smoothed' = 'smooth',
-        '1km' = 'low',
-        '200m' = 'high'
-      )
+      resolution_sel <- tolower(input$resolution_daily)
 
-      # table name
-      table_name <- glue::glue(
-        "daily.catdrought_{resolution_sel}"
+      # res
+      res <- catdroughtdb$get_current_time_series(
+        point_sel, var_sel, resolution_sel
       )
-
-      pixel_query <- glue::glue(
-        "
-          SELECT day, ST_Value(
-            rast,
-            {band_sel},
-            ST_SetSRID(ST_Makepoint({clicked_pixel$lng},{clicked_pixel$lat}),4326)
-          ) As pixel_value
-          FROM {table_name}
-          WHERE ST_Intersects(
-            rast,
-            ST_SetSRID(ST_Makepoint({clicked_pixel$lng},{clicked_pixel$lat}),4326)
-          )
-        "
-      )
-
-      res <- pool::dbGetQuery(catdrought_db, pixel_query)
       return(res)
 
     })
@@ -571,53 +440,26 @@ $(document).on('shiny:disconnected', function(event) {
 
       clicked_marker <- input$map_daily_marker_click
 
+      point_sel <- tibble::tibble(
+        point_id = clicked_marker$id,
+        long = clicked_marker$lng,
+        lat = clicked_marker$lat
+      ) %>%
+        sf::st_as_sf(
+          coords = c('long', 'lat'),
+          crs = 4326
+        )
+
       # band
-      band_sel <- switch(
-        input$var_daily,
-        "DeepDrainage" = 3,
-        "Eplant" = 4,
-        "Esoil" = 5,
-        "LAI" = 6,
-        "NetPrec" = 7,
-        "PET" = 8,
-        "Psi" = 9,
-        "Rain" = 10,
-        "REW" = 11,
-        "Runoff" = 12,
-        "Theta" = 13,
-        "DDS" = 2,
-        "NDD" = 1
-      )
+      var_sel <- input$var_daily
 
       # resolution
-      resolution_sel <- switch(
-        input$resolution_daily,
-        'Smoothed' = 'smooth',
-        '1km' = 'low',
-        '200m' = 'high'
-      )
+      resolution_sel <- tolower(input$resolution_daily)
 
-      # table name
-      table_name <- glue::glue(
-        "daily.catdrought_{resolution_sel}"
+      # res
+      res <- catdroughtdb$get_current_time_series(
+        point_sel, var_sel, resolution_sel
       )
-
-      marker_query <- glue::glue(
-        "
-          SELECT day, ST_Value(
-            rast,
-            {band_sel},
-            ST_SetSRID(ST_Makepoint({clicked_marker$lng},{clicked_marker$lat}),4326)
-          ) As marker_value
-          FROM {table_name}
-          WHERE ST_Intersects(
-            rast,
-            ST_SetSRID(ST_Makepoint({clicked_marker$lng},{clicked_marker$lat}),4326)
-          )
-        "
-      )
-
-      res <- pool::dbGetQuery(catdrought_db, marker_query)
       return(res)
 
     })
@@ -639,14 +481,14 @@ $(document).on('shiny:disconnected', function(event) {
           # data and plot
           plot_data <- series_data_for_markers()
           res <- plot_data %>%
-            dplyr::select(marker_value) %>%
+            dplyr::select({{ var_id }}) %>%
             xts::as.xts(order.by = plot_data$day) %>%
             dygraphs::dygraph(
               main = glue::glue("{translate_app(var_id, lang())} - {glue::glue(translate_app('daily_trends_ifn_title', lang()))}"),
               ylab = glue::glue("{translate_app(var_id, lang())}")
             ) %>%
             dygraphs::dySeries(
-              'marker_value', label = clicked_marker$id,
+              var_id, label = clicked_marker$id,
               color = '#448714', strokeWidth = 2
             )
         } else {
@@ -676,14 +518,14 @@ $(document).on('shiny:disconnected', function(event) {
         # data and plot
         plot_data <- series_data_for_pixel()
         res <- plot_data %>%
-          dplyr::select(pixel_value) %>%
+          dplyr::select({{ var_id }}) %>%
           xts::as.xts(order.by = plot_data$day) %>%
           dygraphs::dygraph(
             main = glue::glue("{translate_app(var_id, lang())} - {glue::glue(translate_app('daily_trends_other_title', lang()))}"),
             ylab = glue::glue("{translate_app(var_id, lang())}")
           ) %>%
           dygraphs::dySeries(
-            c('pixel_value'), label = 'Pixel',
+            c(var_id), label = 'Pixel',
             color = '#448714', strokeWidth = 2
           )
       }
@@ -877,7 +719,7 @@ $(document).on('shiny:disconnected', function(event) {
 
       ## on stop routine to cloose the db pool
       shiny::onStop(function() {
-        pool::poolClose(catdrought_db)
+        # pool::poolClose(catdrought_db)
       })
     }
   )
