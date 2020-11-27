@@ -1,22 +1,22 @@
 raster_brick_creation <- function(file) {
-  load(file)
+  spdf <- readr::read_rds(file)
   raster::raster(spdf) %>%
     raster::projectRaster(crs = sp::CRS("+init=epsg:4326"))
 }
 
-day_files_checker <- function(folder, day) {
-
-  files_to_load <- list.files(folder, full.names = TRUE, pattern = day, recursive = FALSE)
-
-  # check if there is files
-  if (length(files_to_load) < 1) {
-    # if not, do it again for the previous day
-    files_to_load <- day_files_checker(folder, as.character(lubridate::date(day) - 1))
-  }
-
-  # of there is files, then return them
-  return(files_to_load)
-}
+# day_files_checker <- function(folder, day) {
+#
+#   files_to_load <- list.files(folder, full.names = TRUE, pattern = day, recursive = FALSE)
+#
+#   # check if there is files
+#   if (length(files_to_load) < 1) {
+#     # if not, do it again for the previous day
+#     files_to_load <- day_files_checker(folder, as.character(lubridate::date(day) - 1))
+#   }
+#
+#   # of there is files, then return them
+#   return(files_to_load)
+# }
 
 
 #' Function to update the database with the dates missing
@@ -26,336 +26,186 @@ day_files_checker <- function(folder, day) {
 #' @param user
 #' @param pass
 #' @param port
-#' @param path
-#' @param changed
-#' @param added
 #'
 #' @export
-catdrought_daily_update <- function(
-  user = 'guest', pass = 'guest', port = 'staging',
-  path = '/home/vgranda/LFC/10_serverproces_data/CatDrought', changed = TRUE, added = TRUE
-) {
-
-  port <- switch (port,
-    'staging' = 5433,
-    'production' = 5432
-  )
+catdrought_daily_update <- function(user, password, dbname, host, port) {
 
   # db connection
   database <- pool::dbPool(
-    RPostgreSQL::PostgreSQL(),
+    RPostgres::Postgres(),
     user = user,
-    password = pass,
-    dbname = 'catdrought_db',
-    host = '158.109.46.23',
+    password = password,
+    dbname = dbname,
+    host = host,
     port = port
   )
   temp_postgresql_conn <- pool::poolCheckout(database)
 
   # vars to check
-  vars <- c(
-    list.files(
-      file.path(
-        path, 'Rdata', 'Maps', 'Current', '200m', 'SPWB'
-      ), include.dirs = TRUE
-    ),
-    list.files(
-      file.path(
-        path, 'Rdata', 'Maps', 'Current', '200m', 'DroughtStress'
-      ), include.dirs = TRUE
-    )
+  vars <- list.files(
+    file.path(
+      '/home', 'miquel', 'CatDroughtEngine', 'Rdata', 'Maps', 'Current', '200m'
+    ), include.dirs = TRUE
   )
 
-  # we need the new dates, meaning the dates present in data folder that are not present
-  # in the database OR also those that are present in the database but they have been
-  # modified in serverprocess due to fixes or improvements in the data treatment by
-  # Miquel:
-
-  # First, we need to load the state of the files before the last update. We use a cached
-  # file in the path folder, named fileSnapshot_cached.RData and compare with a new
-  # fileSnapshot object to see differences
-  load(file = file.path(path, 'fileSnapshot_cached.RData'))
-  fileSnapshot_actual <- utils::fileSnapshot(
-    path = file.path(path, 'Rdata', 'Maps', 'Current'),
-    md5sum = TRUE, pattern = '.rda', recursive = TRUE
-  )
-
-  changes_object <- utils::changedFiles(fileSnapshot_cached, fileSnapshot_actual)
-
-  added_rdas <- changes_object$added %>%
-    magrittr::extract(
-      stringr::str_detect(
-        changes_object$added,
-        pattern = "Fagus|Pinus|Quercus",
-        negate = TRUE
-      )
-    )
-
-  changed_rdas <- changes_object$changed %>%
-    magrittr::extract(
-      stringr::str_detect(
-        changes_object$added,
-        pattern = "Fagus|Pinus|Quercus",
-        negate = TRUE
-      )
-    )
+  # dates to check
+  dates_daily <- list.files(
+    file.path(
+      '/home', 'miquel', 'CatDroughtEngine', 'Rdata', 'Maps', 'Current', '200m', 'Eplant'
+    ), full.names = FALSE, pattern = '.rds'
+  ) %>% stringr::str_remove(pattern = '.rds')
 
 
-  dates_to_upload <- c(
-    if (isTRUE(added)) {added_rdas} else {character()},
-    if (isTRUE(changed)) {changed_rdas} else {character()}
-  ) %>%
-    stringr::str_sub(-14, -5) %>%
-    unique()
 
-  # now we make a loop for each date to update to create the rasters and update the
-  # database, but checking if there is no updates
-  if (length(dates_to_upload) < 1) {
-    # closing database connections and writing the new cached data
-    fileSnapshot_cached <- fileSnapshot_actual
-    save(fileSnapshot_cached, file = file.path(path, 'fileSnapshot_cached.RData'))
-    pool::poolReturn(temp_postgresql_conn)
-    pool::poolClose(database)
-    # exit the function
-    return()
-  }
+  # lets looping!!
+  for (date_sel in dates_daily) {
 
-  # after checking we have updates, lets looping!!
-  for (date_sel in dates_to_upload) {
+    # we need to check if the table is already in the database
+    high_table_name <-
+      glue::glue("daily.catdrought_high_{stringr::str_remove_all(date_sel, '-')}")
 
-    # build the raster brick and create the temp table
-    raster_high <- c(
-      # NDD
-      day_files_checker(
-        folder = file.path(path, 'Rdata', 'Maps', 'Current', '200m', 'DroughtStress', 'NDD', 'Overall'),
-        day = date_sel
-      ),
-      # DDS
-      day_files_checker(
-        folder = file.path(path, 'Rdata', 'Maps', 'Current', '200m', 'DroughtStress', 'DDS', 'Overall'),
-        day = date_sel
-      ),
-      # DeepDrainage
-      day_files_checker(
-        folder = file.path(path, 'Rdata', 'Maps', 'Current', '200m', 'SPWB', 'DeepDrainage'),
-        day = date_sel
-      ),
-      # Eplant
-      day_files_checker(
-        folder = file.path(path, 'Rdata', 'Maps', 'Current', '200m', 'SPWB', 'Eplant'),
-        day = date_sel
-      ),
-      # Esoil
-      day_files_checker(
-        folder = file.path(path, 'Rdata', 'Maps', 'Current', '200m', 'SPWB', 'Esoil'),
-        day = date_sel
-      ),
-      # LAI
-      day_files_checker(
-        folder = file.path(path, 'Rdata', 'Maps', 'Current', '200m', 'SPWB', 'LAI'),
-        day = date_sel
-      ),
-      # NetPrec
-      day_files_checker(
-        folder = file.path(path, 'Rdata', 'Maps', 'Current', '200m', 'SPWB', 'NetPrec'),
-        day = date_sel
-      ),
-      # PET
-      day_files_checker(
-        folder = file.path(path, 'Rdata', 'Maps', 'Current', '200m', 'SPWB', 'PET'),
-        day = date_sel
-      ),
-      # Psi
-      day_files_checker(
-        folder = file.path(path, 'Rdata', 'Maps', 'Current', '200m', 'SPWB', 'Psi'),
-        day = date_sel
-      ),
-      # Rain
-      day_files_checker(
-        folder = file.path(path, 'Rdata', 'Maps', 'Current', '200m', 'SPWB', 'Rain'),
-        day = date_sel
-      ),
-      # REW
-      day_files_checker(
-        folder = file.path(path, 'Rdata', 'Maps', 'Current', '200m', 'SPWB', 'REW'),
-        day = date_sel
-      ),
-      # Runoff
-      day_files_checker(
-        folder = file.path(path, 'Rdata', 'Maps', 'Current', '200m', 'SPWB', 'Runoff'),
-        day = date_sel
-      ),
-      # Theta
-      day_files_checker(
-        folder = file.path(path, 'Rdata', 'Maps', 'Current', '200m', 'SPWB', 'Theta'),
-        day = date_sel
-      )
-    ) %>%
-      purrr::map(raster_brick_creation) %>%
-      raster::stack()
+    if (!dplyr::db_has_table(high_table_name)) {
+      message(glue::glue("Process for {date_sel}:"))
 
-    raster_low <- c(
-      # NDD
-      day_files_checker(
-        folder = file.path(path, 'Rdata', 'Maps', 'Current', '1km', 'DroughtStress', 'NDD', 'Overall'),
-        day = date_sel
-      ),
-      # DDS
-      day_files_checker(
-        folder = file.path(path, 'Rdata', 'Maps', 'Current', '1km', 'DroughtStress', 'DDS', 'Overall'),
-        day = date_sel
-      ),
-      # DeepDrainage
-      day_files_checker(
-        folder = file.path(path, 'Rdata', 'Maps', 'Current', '1km', 'SPWB', 'DeepDrainage'),
-        day = date_sel
-      ),
-      # Eplant
-      day_files_checker(
-        folder = file.path(path, 'Rdata', 'Maps', 'Current', '1km', 'SPWB', 'Eplant'),
-        day = date_sel
-      ),
-      # Esoil
-      day_files_checker(
-        folder = file.path(path, 'Rdata', 'Maps', 'Current', '1km', 'SPWB', 'Esoil'),
-        day = date_sel
-      ),
-      # LAI
-      day_files_checker(
-        folder = file.path(path, 'Rdata', 'Maps', 'Current', '1km', 'SPWB', 'LAI'),
-        day = date_sel
-      ),
-      # NetPrec
-      day_files_checker(
-        folder = file.path(path, 'Rdata', 'Maps', 'Current', '1km', 'SPWB', 'NetPrec'),
-        day = date_sel
-      ),
-      # PET
-      day_files_checker(
-        folder = file.path(path, 'Rdata', 'Maps', 'Current', '1km', 'SPWB', 'PET'),
-        day = date_sel
-      ),
-      # Psi
-      day_files_checker(
-        folder = file.path(path, 'Rdata', 'Maps', 'Current', '1km', 'SPWB', 'Psi'),
-        day = date_sel
-      ),
-      # Rain
-      day_files_checker(
-        folder = file.path(path, 'Rdata', 'Maps', 'Current', '1km', 'SPWB', 'Rain'),
-        day = date_sel
-      ),
-      # REW
-      day_files_checker(
-        folder = file.path(path, 'Rdata', 'Maps', 'Current', '1km', 'SPWB', 'REW'),
-        day = date_sel
-      ),
-      # Runoff
-      day_files_checker(
-        folder = file.path(path, 'Rdata', 'Maps', 'Current', '1km', 'SPWB', 'Runoff'),
-        day = date_sel
-      ),
-      # Theta
-      day_files_checker(
-        folder = file.path(path, 'Rdata', 'Maps', 'Current', '1km', 'SPWB', 'Theta'),
-        day = date_sel
-      )
-    ) %>%
-      purrr::map(raster_brick_creation) %>%
-      raster::stack()
+      # build the raster brick and create the temp table
+      message(glue::glue("Building high res raster for {date_sel}"))
+      raster_high <- list.files(
+        file.path(
+          '/home', 'miquel', 'CatDroughtEngine', 'Rdata', 'Maps', 'Current', '200m'
+        ), full.names = TRUE, pattern = date_sel, recursive = TRUE
+      ) %>%
+        purrr::map(raster_brick_creation) %>%
+        raster::stack() %>%
+        magrittr::set_names(vars)
 
-    raster_smooth <- c(
-      # NDD
-      day_files_checker(
-        folder = file.path(path, 'Rdata', 'Maps', 'Current', 'Smoothed', 'DroughtStress', 'NDD', 'Overall'),
-        day = date_sel
-      ),
-      # DDS
-      day_files_checker(
-        folder = file.path(path, 'Rdata', 'Maps', 'Current', 'Smoothed', 'DroughtStress', 'DDS', 'Overall'),
-        day = date_sel
-      ),
-      # DeepDrainage
-      day_files_checker(
-        folder = file.path(path, 'Rdata', 'Maps', 'Current', 'Smoothed', 'SPWB', 'DeepDrainage'),
-        day = date_sel
-      ),
-      # Eplant
-      day_files_checker(
-        folder = file.path(path, 'Rdata', 'Maps', 'Current', 'Smoothed', 'SPWB', 'Eplant'),
-        day = date_sel
-      ),
-      # Esoil
-      day_files_checker(
-        folder = file.path(path, 'Rdata', 'Maps', 'Current', 'Smoothed', 'SPWB', 'Esoil'),
-        day = date_sel
-      ),
-      # LAI
-      day_files_checker(
-        folder = file.path(path, 'Rdata', 'Maps', 'Current', 'Smoothed', 'SPWB', 'LAI'),
-        day = date_sel
-      ),
-      # NetPrec
-      day_files_checker(
-        folder = file.path(path, 'Rdata', 'Maps', 'Current', 'Smoothed', 'SPWB', 'NetPrec'),
-        day = date_sel
-      ),
-      # PET
-      day_files_checker(
-        folder = file.path(path, 'Rdata', 'Maps', 'Current', 'Smoothed', 'SPWB', 'PET'),
-        day = date_sel
-      ),
-      # Psi
-      day_files_checker(
-        folder = file.path(path, 'Rdata', 'Maps', 'Current', 'Smoothed', 'SPWB', 'Psi'),
-        day = date_sel
-      ),
-      # Rain
-      day_files_checker(
-        folder = file.path(path, 'Rdata', 'Maps', 'Current', 'Smoothed', 'SPWB', 'Rain'),
-        day = date_sel
-      ),
-      # REW
-      day_files_checker(
-        folder = file.path(path, 'Rdata', 'Maps', 'Current', 'Smoothed', 'SPWB', 'REW'),
-        day = date_sel
-      ),
-      # Runoff
-      day_files_checker(
-        folder = file.path(path, 'Rdata', 'Maps', 'Current', 'Smoothed', 'SPWB', 'Runoff'),
-        day = date_sel
-      ),
-      # Theta
-      day_files_checker(
-        folder = file.path(path, 'Rdata', 'Maps', 'Current', 'Smoothed', 'SPWB', 'Theta'),
-        day = date_sel
-      )
-    ) %>%
-      purrr::map(raster_brick_creation) %>%
-      raster::stack()
+      message(glue::glue("Building low res raster for {date_sel}"))
+      raster_low <- list.files(
+        file.path(
+          '/home', 'miquel', 'CatDroughtEngine', 'Rdata', 'Maps', 'Current', '1km'
+        ), full.names = TRUE, pattern = date_sel, recursive = TRUE
+      ) %>%
+        purrr::map(raster_brick_creation) %>%
+        raster::stack() %>%
+        magrittr::set_names(vars)
 
-    # create the temp tables
-    raster_high %>% {
-      rpostgis::pgWriteRast(
-        temp_postgresql_conn, 'temp200', ., blocks = 25, overwrite = TRUE
-      )
-    }
+      message(glue::glue("Building smoothed raster for {date_sel}"))
+      raster_smooth <- list.files(
+        file.path(
+          '/home', 'miquel', 'CatDroughtEngine', 'Rdata', 'Maps', 'Current', 'Smoothed'
+        ), full.names = TRUE, pattern = date_sel, recursive = TRUE
+      ) %>%
+        purrr::map(raster_brick_creation) %>%
+        raster::stack() %>%
+        magrittr::set_names(vars)
 
-    raster_low %>% {
-      rpostgis::pgWriteRast(
-        temp_postgresql_conn, 'temp1000', ., blocks = 25, overwrite = TRUE
-      )
-    }
+      # write the rasters in the db
+      message(glue::glue("Writing high res raster for {date_sel}"))
+      try_write_high <- try({
+        raster_high %>% {
+          rpostgis::pgWriteRast(
+            temp_postgresql_conn, 'temp200', ., blocks = 25, overwrite = TRUE
+          )
+        }
+      })
 
-    raster_smooth %>% {
-      rpostgis::pgWriteRast(
-        temp_postgresql_conn, 'tempsmooth', ., blocks = 25, overwrite = TRUE
-      )
-    }
+      if (class(try_write_high) == 'try-error') {
+        pool::poolReturn(temp_postgresql_conn)
+        pool::poolClose(catdrought_db)
+        catdrought_db <- pool::dbPool(
+          RPostgreSQL::PostgreSQL(),
+          user = user,
+          password = password,
+          dbname = dbname,
+          host = host,
+          port = port
+        )
+        temp_postgresql_conn <- pool::poolCheckout(catdrought_db)
 
-    # traspose to the partitioned table
-    create_parti_table_query <- glue::glue(
-      "
+        raster_high %>% {
+          rpostgis::pgWriteRast(
+            temp_postgresql_conn, 'temp200', ., blocks = 25, overwrite = TRUE
+          )
+        }
+      }
+      # raster_high %>% {
+      #   rpostgis::pgWriteRast(
+      #     temp_postgresql_conn, 'temp200', ., blocks = 25, overwrite = TRUE
+      #   )
+      # }
+
+      message(glue::glue("Writing low res raster for {date_sel}"))
+      try_write_low <- try({
+        raster_low %>% {
+          rpostgis::pgWriteRast(
+            temp_postgresql_conn, 'temp1000', ., blocks = 25, overwrite = TRUE
+          )
+        }
+      })
+
+      if (class(try_write_low) == 'try-error') {
+        pool::poolReturn(temp_postgresql_conn)
+        pool::poolClose(catdrought_db)
+        catdrought_db <- pool::dbPool(
+          RPostgreSQL::PostgreSQL(),
+          user = user,
+          password = password,
+          dbname = dbname,
+          host = host,
+          port = port
+        )
+        temp_postgresql_conn <- pool::poolCheckout(catdrought_db)
+
+        raster_low %>% {
+          rpostgis::pgWriteRast(
+            temp_postgresql_conn, 'temp1000', ., blocks = 25, overwrite = TRUE
+          )
+        }
+      }
+      # raster_low %>% {
+      #   rpostgis::pgWriteRast(
+      #     temp_postgresql_conn, 'temp1000', ., blocks = 25, overwrite = TRUE
+      #   )
+      # }
+
+      message(glue::glue("Writing smoothed raster for {date_sel}"))
+      try_write_smooth <- try({
+        raster_smooth %>% {
+          rpostgis::pgWriteRast(
+            temp_postgresql_conn, 'tempsmooth', ., blocks = 25, overwrite = TRUE
+          )
+        }
+      })
+
+      if (class(try_write_smooth) == 'try-error') {
+        pool::poolReturn(temp_postgresql_conn)
+        pool::poolClose(catdrought_db)
+        catdrought_db <- pool::dbPool(
+          RPostgreSQL::PostgreSQL(),
+          user = user,
+          password = password,
+          dbname = dbname,
+          host = host,
+          port = port
+        )
+        temp_postgresql_conn <- pool::poolCheckout(catdrought_db)
+
+        raster_smooth %>% {
+          rpostgis::pgWriteRast(
+            temp_postgresql_conn, 'tempsmooth', ., blocks = 25, overwrite = TRUE
+          )
+        }
+      }
+      # raster_smooth %>% {
+      #   rpostgis::pgWriteRast(
+      #     temp_postgresql_conn, 'tempsmooth', ., blocks = 25, overwrite = TRUE
+      #   )
+      # }
+
+
+      # traspose to the partitioned table
+      message(glue::glue("Creating partitioned tables for {date_sel}"))
+      create_parti_table_query <- glue::glue(
+        "
      DROP TABLE IF EXISTS daily.catdrought_high_{stringr::str_remove_all(date_sel, '-')};
      CREATE TABLE daily.catdrought_high_{stringr::str_remove_all(date_sel, '-')} (
          CHECK (day = DATE '{date_sel}')
@@ -371,12 +221,32 @@ catdrought_daily_update <- function(
          CHECK (day = DATE '{date_sel}')
      ) INHERITS (daily.catdrought_smooth);
     "
-    )
-    pool::dbExecute(database, create_parti_table_query)
+      )
+
+      try_create_parti_table <- try({
+        pool::dbExecute(catdrought_db, create_parti_table_query)
+      })
+
+      if (class(try_create_parti_table) == 'try-error') {
+        pool::poolReturn(temp_postgresql_conn)
+        pool::poolClose(catdrought_db)
+        catdrought_db <- pool::dbPool(
+          RPostgreSQL::PostgreSQL(),
+          user = 'ifn',
+          password = 'IFN2018creaf',
+          dbname = 'catdrought_db',
+          host = 'laboratoriforestal.creaf.uab.cat',
+          port = 5432
+        )
+        temp_postgresql_conn <- pool::poolCheckout(catdrought_db)
+
+        pool::dbExecute(catdrought_db, create_parti_table_query)
+      }
+      # pool::dbExecute(catdrought_db, create_parti_table_query)
 
 
-    alter_table_query <- glue::glue(
-      "
+      alter_table_query <- glue::glue(
+        "
      ALTER TABLE temp200 ADD COLUMN day date;
      UPDATE temp200 SET day = '{date_sel}'::date;
      INSERT INTO daily.catdrought_high_{stringr::str_remove_all(date_sel, '-')} (rid, day, rast)
@@ -392,14 +262,32 @@ catdrought_daily_update <- function(
      INSERT INTO daily.catdrought_smooth_{stringr::str_remove_all(date_sel, '-')} (rid, day, rast)
        SELECT rid,day,rast FROM tempsmooth;
     "
-    )
-    pool::dbExecute(database, alter_table_query)
+      )
 
+      try_alter_table <- try({
+        pool::dbExecute(catdrought_db, alter_table_query)
+      })
+
+      if (class(try_alter_table) == 'try-error') {
+        pool::poolReturn(temp_postgresql_conn)
+        pool::poolClose(catdrought_db)
+        catdrought_db <- pool::dbPool(
+          RPostgreSQL::PostgreSQL(),
+          user = 'ifn',
+          password = 'IFN2018creaf',
+          dbname = 'catdrought_db',
+          host = 'laboratoriforestal.creaf.uab.cat',
+          port = 5432
+        )
+        temp_postgresql_conn <- pool::poolCheckout(catdrought_db)
+
+        pool::dbExecute(catdrought_db, alter_table_query)
+      }
+    } else {
+      message(glue::glue('Tables for {date} already exists'))
+    }
   }
-
   # closing database connections and writing the new cached data
-  fileSnapshot_cached <- fileSnapshot_actual
-  save(fileSnapshot_cached, file = file.path(path, 'fileSnapshot_cached.RData'))
   pool::poolReturn(temp_postgresql_conn)
   pool::poolClose(database)
 }

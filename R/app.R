@@ -3,27 +3,26 @@
 #' @importFrom magrittr %>%
 #'
 #' @export
-catdrought_app <- function(
-  user = 'guest', password = 'guest',
-  host = NULL, port = NULL, dbname = 'catdrought_db'
-) {
+catdrought_app <- function() {
 
   ### DB access ################################################################
-  catdrought_db <- pool::dbPool(
-    RPostgreSQL::PostgreSQL(),
-    user = user,
-    password = password,
-    dbname = dbname,
-    host = host,
-    port = port
-  )
+  catdroughtdb <- lfcdata::catdrought()
 
-  ### Variables names inter ####################################################
-  # sp_daily_choices <- c(
-  #   "All woody species", "Pinus halepensis", "Pinus nigra", "Pinus sylvestris",
-  #   "Pinus uncinata", "Pinus pinea", "Pinus pinaster", "Quercus ilex",
-  #   "Quercus suber", "Quercus humilis", "Quercus faginea", "Fagus sylvatica"
-  # )
+  ## JS code needed ############################################################
+  keep_alive_script <- shiny::HTML(
+    "var socket_timeout_interval;
+var n = 0;
+
+$(document).on('shiny:connected', function(event) {
+  socket_timeout_interval = setInterval(function() {
+    Shiny.onInputChange('alive_count', n++)
+  }, 10000);
+});
+
+$(document).on('shiny:disconnected', function(event) {
+  clearInterval(socket_timeout_interval)
+});"
+  )
 
 
 
@@ -45,6 +44,8 @@ catdrought_app <- function(
 
     # css
     shiny::tags$head(
+      # js script,
+      shiny::tags$script(keep_alive_script),
       # custom css
       shiny::includeCSS(
         system.file('resources', 'catdrought.css', package = 'catdroughtApp')
@@ -164,17 +165,17 @@ catdrought_app <- function(
             'date_daily', translate_app('date_daily_label', lang_declared),
             # max and value setted to 24/09/2019 because data shortage
             # value = date_daily_choices[length(date_daily_choices)],
-            value = lubridate::ymd("2019-09-24"),
+            value = lubridate::ymd(Sys.Date() - 1),
             min = date_daily_choices[1],
-            max = lubridate::ymd("2019-09-24"),
-            # max = date_daily_choices[length(date_daily_choices)],
+            # max = lubridate::ymd("2019-09-24"),
+            max = date_daily_choices[length(date_daily_choices)],
             # TODO dates disabled for 2018, as the data is missing. This must be
             # removed when we have all the year data available
-            datesdisabled = seq(
-              lubridate::ymd("2018-12-31"),
-              lubridate::ymd(date_daily_choices[1]),
-              by = 'days'
-            ),
+            # datesdisabled = seq(
+            #   lubridate::ymd("2018-12-31"),
+            #   lubridate::ymd(date_daily_choices[1]),
+            #   by = 'days'
+            # ),
             weekstart = 1, language = dates_lang
           ),
           # polygon sel
