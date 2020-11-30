@@ -85,6 +85,62 @@ mod_map <- function(
       )
   })
 
+  ## observers to update the map ####
+  # draw polygons observer
+  shiny::observe({
+
+    shiny::validate(
+      shiny::need(data_reactives$display_daily, 'no polygon/plots selected'),
+      shiny::need(data_reactives$var_daily, 'no var selected'),
+      shiny::need(data_reactives$resolution_daily, 'no res selected')
+    )
+
+    display_daily <- data_reactives$display_daily
+    var_daily <- data_reactives$var_daily
+
+    if (display_daily == 'none') {
+      leaflet::leafletProxy('map_daily') %>%
+        leaflet::clearGroup('display_daily')
+      return()
+    }
+
+    # if plots do markers, if polys do polygons
+    if (display_daily == 'IFN plots') {
+      leaflet::leafletProxy('map_daily') %>%
+        leaflet::clearGroup('display_daily') %>%
+        leaflet::addCircleMarkers(
+          data = nfi4_plots,
+          group = 'display_daily',
+          label = ~plot_id,
+          layerId = ~plot_id,
+          clusterOptions = leaflet::markerClusterOptions()
+        )
+    } else {
+      if (display_daily == 'file') {
+        # TODO
+      } else {
+        polygon_object_name <- glue::glue("{tolower(display_daily)}_polygons")
+
+        leaflet::leafletProxy('map_daily') %>%
+          leaflet::clearGroup('display_daily') %>%
+          leaflet::addPolygons(
+            data = rlang::eval_tidy(rlang::sym(polygon_object_name)),
+            group = 'display_daily',
+            label = ~poly_id, layerId = ~poly_id,
+            weight = 1, smoothFactor = 1,
+            opacity = 1.0, fill = TRUE, fillOpacity = 0,
+            color = '#6C7A89FF',
+            highlightOptions = leaflet::highlightOptions(
+              color = "#CF000F", weight = 2,
+              bringToFront = TRUE,
+              fill = TRUE, fillOpacity = 0
+            )
+          )
+      }
+    }
+
+  })
+
   ## reactives to return ####
   map_reactives <- shiny::reactiveValues()
   shiny::observe({
