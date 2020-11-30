@@ -107,6 +107,11 @@ $(document).on('shiny:disconnected', function(event) {
                 # 'map',
                 value = 'map_panel',
                 mod_mapOutput('mod_mapOutput')
+              ),
+              shiny::tabPanel(
+                title = mod_tab_translateOutput('series_tab_translation'),
+                value = 'series_panel',
+                mod_tsOutput('mod_tsOutput')
               )
             )
           )
@@ -158,6 +163,12 @@ $(document).on('shiny:disconnected', function(event) {
       data_reactives, map_reactives,
       catdroughtdb, lang
     )
+    # ts
+    timseries_reactives <- shiny::callModule(
+      mod_ts, 'mod_tsOutput',
+      data_reactives, main_data_reactives,
+      lang
+    )
 
     ## tab translations ####
     shiny::callModule(
@@ -171,6 +182,10 @@ $(document).on('shiny:disconnected', function(event) {
     shiny::callModule(
       mod_tab_translate, 'map_translation',
       'map_translation', lang
+    )
+    shiny::callModule(
+      mod_tab_translate, 'series_tab_translation',
+      'series_tab_translation', lang
     )
 
     # output$actual_tab <- renderText({

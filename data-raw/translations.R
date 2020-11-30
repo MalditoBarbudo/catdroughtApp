@@ -59,8 +59,7 @@ tibble::tribble(
   "main_tab_translation", "Explora", "Explore", "Explora",
   "data_translation", "Dades", "Data", "Datos",
   "map_translation", "Mapa", "Map", "Mapa",
-  'map_tab_label', "Mapa", "Map", "Mapa",
-  'series_tab_label', "Sèries temporals", "Time series", "Series temporales",
+  'series_tab_translation', "Sèries temporals", "Time series", "Series temporales",
 
   # modal dialog waiting
   'modal_waiting_p', "Extraient tots els valors per a l'àrea seleccionada. Això pot trigar algun temps depenent del tipus i mida de l'àrea seleccionada (~ 5-60s)", "Extracting all values for the selected area. This can take a while depending on the type and size of the selected area (5 ~ 60 secs)", "Extrayendo todos los valores para el área seleccionada. Esto puede tardar algún tiempo dependiendo del tipo y tamaño del área seleccionada (~ 5-60s)",
