@@ -55,7 +55,10 @@ tibble::tribble(
   # download trend button
   "download_series_label", "Descàrrega la sèrie", "Download series", "Descarga la serie",
 
-  # tab panel titles
+  # tabs translations
+  "main_tab_translation", "Explora", "Explore", "Explora",
+  "data_translation", "Dades", "Data", "Datos",
+  "map_translation", "Mapa", "Map", "Mapa",
   'map_tab_label', "Mapa", "Map", "Mapa",
   'series_tab_label', "Sèries temporals", "Time series", "Series temporales",
 
