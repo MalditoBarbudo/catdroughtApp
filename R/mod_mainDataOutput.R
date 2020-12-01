@@ -124,7 +124,56 @@ mod_mainData <- function(
   })
 
   # file reactive
-  # TODO
+  file_sf_builder <- shiny::reactive({
+    shiny::validate(
+      shiny::need(data_reactives$user_file_sel, 'no file uploaded yet')
+    )
+
+    path_to_file <- data_reactives$user_file_sel$datapath
+    file_name <- data_reactives$user_file_sel$name
+
+    # check if there is user file
+    if (is.null(path_to_file)) {
+      user_file_sf <- NULL
+    } else {
+      # alert and validation for the file extension
+      if (!stringr::str_detect(file_name, '.gpkg$|.zip$')) {
+        shinyWidgets::sendSweetAlert(
+          session = session,
+          title = translate_app('sweet_alert_fileext_title', lang()),
+          text = translate_app('sweet_alert_fileext_text', lang())
+        )
+        shiny::validate(
+          shiny::need(
+            stringr::str_detect(file_name, '.gpkg$|.zip$'), 'bad file format'
+          )
+        )
+      }
+
+      # check if zip (shapefile) or gpkg to load the data
+      if (stringr::str_detect(file_name, '.zip$')) {
+        tmp_folder <- tempdir()
+        utils::unzip(path_to_file, exdir = tmp_folder)
+
+        user_file_sf <- sf::st_read(
+          list.files(tmp_folder, '.shp', recursive = TRUE, full.names = TRUE),
+          as_tibble = TRUE
+        ) %>%
+          sf::st_transform(4326)
+      } else {
+        # gpkg
+        user_file_sf <- sf::st_read(path_to_file) %>%
+          sf::st_transform(4326)
+      }
+    }
+
+    shiny::validate(
+      shiny::need(user_file_sf, 'no file provided')
+    )
+
+    return(user_file_sf)
+
+  })
 
   timeseries_data <- shiny::reactive({
     shiny::validate(
@@ -164,7 +213,97 @@ mod_mainData <- function(
       } else {
         if (display_daily == 'file') {
           # file
-          # TODO
+          sf_for_ts <- file_sf_builder()
+          title_for_ts <- translate_app("file", lang())
+          df_for_ts <- catdroughtdb$get_current_time_series(
+            sf_for_ts, var_daily, resolution_daily
+          )
+          # if features are points, build the dygraph for points, if features are
+          # polygons, build the dygraph for polygons
+          if ('avg_pval' %in% names(df_for_ts)) {
+            # polygons
+            temp_data <- df_for_ts %>%
+              dplyr::mutate(
+                low = avg_pval - se_pval,
+                high = avg_pval + se_pval,
+              ) %>%
+              dplyr::select(
+                day, polygon_id, {{var_daily}} := avg_pval, low, high
+              ) %>%
+              tidyr::pivot_wider(
+                names_from = 'polygon_id',
+                values_from = c(var_daily, 'low', 'high')
+              )
+
+            dygraph_for_ts <- temp_data %>%
+              dplyr::select(-day) %>%
+              xts::as.xts(order.by = temp_data$day) %>%
+              dygraphs::dygraph(
+                main = title_for_ts,
+                ylab = glue::glue("{translate_app(var_daily, lang())}")
+              ) %>%
+              dygraphs::dyAxis("x", drawGrid = FALSE) %>%
+              dygraphs::dyHighlight(
+                highlightCircleSize = 5,
+                highlightSeriesBackgroundAlpha = 1,
+                hideOnMouseOut = TRUE
+              ) %>%
+              dygraphs::dyLegend(
+                show = "follow", labelsSeparateLines = TRUE
+              ) %>%
+              dygraphs::dyOptions(
+                axisLineWidth = 1.5,
+                # drawGrid = FALSE,
+                axisLineColor = '#647a8d', axisLabelColor = '#647a8d',
+                includeZero = TRUE, gridLineColor = '#647a8d'
+              ) %>% {
+                temp_dygraph <- .
+                series_index <- 1:((ncol(temp_data) - 1)/3)
+                for (serie in series_index) {
+                  names_series <-
+                    names(temp_data)[c(serie+1+length(series_index), serie+1, serie+1+(length(series_index)*2))]
+                  temp_dygraph <- temp_dygraph %>%
+                    dygraphs::dySeries(
+                      names_series,
+                      label = stringr::str_remove_all(
+                        names(temp_data)[serie+1], '^[A-Za-z]+_'
+                      )
+                    )
+                }
+                temp_dygraph
+              }
+
+          } else {
+            # points
+            temp_data <- df_for_ts %>%
+              tidyr::pivot_wider(
+                names_from = 'point_id',
+                values_from = var_daily
+              )
+
+            dygraph_for_ts <- temp_data %>%
+              dplyr::select(-day) %>%
+              xts::as.xts(order.by = temp_data$day) %>%
+              dygraphs::dygraph(
+                main = title_for_ts,
+                ylab = glue::glue("{translate_app(var_daily, lang())}")
+              ) %>%
+              dygraphs::dyAxis("x", drawGrid = FALSE) %>%
+              dygraphs::dyHighlight(
+                highlightCircleSize = 5,
+                highlightSeriesBackgroundAlpha = 1,
+                hideOnMouseOut = TRUE
+              ) %>%
+              dygraphs::dyLegend(
+                show = "follow", labelsSeparateLines = TRUE
+              ) %>%
+              dygraphs::dyOptions(
+                axisLineWidth = 1.5,
+                # drawGrid = FALSE,
+                axisLineColor = '#647a8d', axisLabelColor = '#647a8d',
+                includeZero = TRUE, gridLineColor = '#647a8d'
+              )
+          }
         } else {
           # shapes
           sf_for_ts <- map_shape_sf_builder()
@@ -214,6 +353,7 @@ mod_mainData <- function(
 
     res <- list(
       data = df_for_ts,
+      sf = sf_for_ts,
       dygraph = dygraph_for_ts
     )
 

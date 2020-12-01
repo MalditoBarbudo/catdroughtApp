@@ -117,7 +117,44 @@ mod_map <- function(
         )
     } else {
       if (display_daily == 'file') {
-        # TODO
+        shiny::validate(
+          shiny::need(data_reactives$user_file_sel, 'no file uploaded yet'),
+          shiny::need(main_data_reactives$timeseries_data$sf, 'No sf yet')
+        )
+
+        file_data <- main_data_reactives$timeseries_data$sf
+
+        # if file is polygons we need to draw polygons, if file are points
+        # we need to draw markers
+        if (all(sf::st_is(file_data, c('MULTIPOLYGON', 'POLYGON')))) {
+          leaflet::leafletProxy('map_daily') %>%
+            leaflet::clearGroup('display_daily') %>%
+            leaflet::addPolygons(
+              data = file_data,
+              group = 'display_daily',
+              label = ~file_data %>% dplyr::pull(1),
+              layerId = ~file_data %>% dplyr::pull(1),
+              weight = 1, smoothFactor = 1,
+              opacity = 1.0, fill = TRUE, fillOpacity = 0,
+              color = '#6C7A89FF',
+              highlightOptions = leaflet::highlightOptions(
+                color = "#CF000F", weight = 2,
+                bringToFront = TRUE,
+                fill = TRUE, fillOpacity = 0
+              )
+            )
+        }
+
+        if (all(sf::st_is(file_data, c('MULTIPOINT', 'POINT')))) {
+          leaflet::leafletProxy('map_daily') %>%
+            leaflet::clearGroup('display_daily') %>%
+            leaflet::addCircleMarkers(
+              data = file_data,
+              group = 'display_daily',
+              label = ~file_data %>% dplyr::pull(1),
+              layerId = ~file_data %>% dplyr::pull(1)
+            )
+        }
       } else {
         polygon_object_name <- glue::glue("{tolower(display_daily)}_polygons")
 

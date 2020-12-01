@@ -88,10 +88,37 @@ mod_data <- function(
       # polygon sel
       shiny::selectInput(
         ns('display_daily'), translate_app('display_daily_label', lang_declared),
-        choices = c('none', "Watersheds", "Counties", "Municipalities", "IFN plots") %>%
+        choices = c(
+          'none', "Watersheds", "Counties", "Municipalities", "IFN plots", "file"
+        ) %>%
           magrittr::set_names(translate_app(., lang_declared)),
         selected = 'none'
       ),
+      shinyjs::hidden(
+        shiny::div(
+          id = ns('file_upload_panel'),
+          shiny::fluidRow(
+            shiny::column(
+              6,
+              shiny::fileInput(
+                ns('user_file_sel'),
+                translate_app('user_file_sel_label', lang()),
+                accept = c('zip', 'gpkg'),
+                buttonLabel = translate_app(
+                  'user_file_sel_buttonLabel', lang()
+                ),
+                placeholder = translate_app(
+                  'user_file_sel_placeholder', lang()
+                )
+              )
+            ),
+            shiny::column(
+              6,
+              shiny::p(translate_app('file_text', lang()))
+            )
+          )
+        )
+      ), # end of hidden file selector
       # resoltion sel
       shiny::radioButtons(
         ns('resolution_daily'), translate_app('resolution_daily_label', lang_declared),
@@ -103,6 +130,22 @@ mod_data <- function(
 
   })
 
+  ## observers ####
+  # observer to show the file upload panel if needed
+  shiny::observe({
+
+    shiny::validate(
+      shiny::need(input$display_daily, 'no type')
+    )
+    display_daily <- input$display_daily
+
+    if (display_daily == 'file') {
+      shinyjs::show('file_upload_panel')
+    } else {
+      shinyjs::hide('file_upload_panel')
+    }
+  })
+
   ## returning inputs ####
   # reactive values to return and use in other modules
   data_reactives <- shiny::reactiveValues()
@@ -112,6 +155,7 @@ mod_data <- function(
     data_reactives$date_daily <- input$date_daily
     data_reactives$display_daily <- input$display_daily
     data_reactives$resolution_daily <- input$resolution_daily
+    data_reactives$user_file_sel <- input$user_file_sel
   })
 
   return(data_reactives)

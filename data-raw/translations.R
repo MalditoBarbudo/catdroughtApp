@@ -39,6 +39,7 @@ tibble::tribble(
   "Counties", "Comarques", "Counties", "Comarcas",
   "Municipalities", "Municipis", "Municipalities", "Municipios",
   "IFN plots", "Parcel·les IFN", "NFI plots", "Parcelas IFN",
+  "file", "Arxiu spaial", "Spatial file", "Archivo espacial",
 
   # resolution_daily sel
   "resolution_daily_label", "Resolució del ràster", "Raster res", "Resolución del ráster",
