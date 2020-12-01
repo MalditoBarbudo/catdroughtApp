@@ -155,7 +155,7 @@ $(document).on('shiny:disconnected', function(event) {
     map_reactives <- shiny::callModule(
       mod_map, 'mod_mapOutput',
       data_reactives, main_data_reactives,
-      lang
+      session, lang
     )
     # main data
     main_data_reactives <- shiny::callModule(
@@ -187,6 +187,7 @@ $(document).on('shiny:disconnected', function(event) {
       mod_tab_translate, 'series_tab_translation',
       'series_tab_translation', lang
     )
+
 
     # output$actual_tab <- renderText({
     #   translate_app('actual_tab_title', lang())
@@ -457,7 +458,7 @@ $(document).on('shiny:disconnected', function(event) {
     # clicked_poly <- shiny::reactive({
     #
     #   shiny::validate(
-    #     shiny::need(input$map_daily_shape_click, 'no click on map')
+    #     shiny::need(map_reactives$map_daily_shape_click, 'no click on map')
     #   )
     #
     #   clicked_poly <- input$map_daily_shape_click

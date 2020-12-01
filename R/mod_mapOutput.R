@@ -23,6 +23,7 @@ mod_mapOutput <- function(id) {
 #' @param session internal
 #'
 #' @param data_reactives,main_data_reactives reactives
+#' @param parent_session session object to change active tab
 #' @param lang lang selected
 #'
 #' @export
@@ -31,7 +32,7 @@ mod_mapOutput <- function(id) {
 mod_map <- function(
   input, output, session,
   data_reactives, main_data_reactives,
-  lang
+  parent_session, lang
 ) {
 
   ## map output ####
@@ -177,6 +178,41 @@ mod_map <- function(
     }
 
   })
+
+  ## observers to change the active tab ####
+  shiny::observeEvent(
+    eventExpr = input$map_daily_shape_click,
+    handlerExpr = {
+      # go to series
+      shiny::updateTabsetPanel(
+        parent_session, 'main_panel_tabset',
+        selected = 'series_panel'
+      )
+    },
+    priority = 1000
+  )
+  shiny::observeEvent(
+    eventExpr = input$map_daily_click,
+    handlerExpr = {
+      # go to series
+      shiny::updateTabsetPanel(
+        parent_session, 'main_panel_tabset',
+        selected = 'series_panel'
+      )
+    },
+    priority = 1000
+  )
+  shiny::observeEvent(
+    eventExpr = input$map_daily_marker_click,
+    handlerExpr = {
+      # go to series
+      shiny::updateTabsetPanel(
+        parent_session, 'main_panel_tabset',
+        selected = 'series_panel'
+      )
+    },
+    priority = 1000
+  )
 
   ## reactives to return ####
   map_reactives <- shiny::reactiveValues()
