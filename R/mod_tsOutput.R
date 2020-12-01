@@ -39,29 +39,13 @@ mod_ts <- function(
       shiny::need(data_reactives$var_daily, 'no inputs yet')
     )
 
+    # browser()
+
     var_daily <- data_reactives$var_daily
     display_daily <- data_reactives$display_daily
-    timeseries_data <- main_data_reactives$timeseries_data
-    # title_text <- switch(
-    #   display_daily,
-    #   'none' = '',
-    #   'IFN plots' = 'daily_trends_ifn_title',
-    #   'file' = '',
-    #   ''
-    # )
+    timeseries_data <- main_data_reactives$timeseries_data$dygraph
 
-    res <- timeseries_data %>%
-      dplyr::select({{ var_daily }}) %>%
-      xts::as.xts(order.by = timeseries_data$day) %>%
-      dygraphs::dygraph(
-        main = glue::glue("{translate_app(var_daily, lang())} - {glue::glue(translate_app('daily_trends_ifn_title', lang()))}"),
-        ylab = glue::glue("{translate_app(var_daily, lang())}")
-      ) %>%
-      dygraphs::dySeries(
-        var_daily, label = '???',
-        color = '#448714', strokeWidth = 2
-      )
-
+    timeseries_data
   })
 
 }

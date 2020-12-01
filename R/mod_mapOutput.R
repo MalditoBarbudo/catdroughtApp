@@ -43,19 +43,19 @@ mod_map <- function(
     )
 
     raster_daily <- main_data_reactives$raster_selected_daily
-    var_daily_sel <- data_reactives$var_daily
+    var_daily <- data_reactives$var_daily
 
-    leaflet_raster <- raster_daily[[var_daily_sel]]
+    leaflet_raster <- raster_daily[[var_daily]]
 
     palette <- leaflet::colorNumeric(
-      palette = palettes_dictionary[[var_daily_sel]][['pal']],
+      palette = palettes_dictionary[[var_daily]][['pal']],
       # domain = c(
-      #   palettes_dictionary[[var_daily_sel]][['min']],
-      #   palettes_dictionary[[var_daily_sel]][['max']]
+      #   palettes_dictionary[[var_daily]][['min']],
+      #   palettes_dictionary[[var_daily]][['max']]
       # ),
       domain = raster::values(leaflet_raster),
       na.color = 'transparent',
-      reverse = palettes_dictionary[[var_daily_sel]][['rev']]
+      reverse = palettes_dictionary[[var_daily]][['rev']]
     )
 
     leaflet::leaflet() %>%
@@ -79,7 +79,7 @@ mod_map <- function(
       ) %>%
       leaflet::addLegend(
         pal = palette, values = raster::values(leaflet_raster),
-        title = translate_app(input$var_daily, lang()),
+        title = translate_app(var_daily, lang()),
         position = 'bottomright',
         opacity = 1
       )
@@ -144,11 +144,11 @@ mod_map <- function(
   ## reactives to return ####
   map_reactives <- shiny::reactiveValues()
   shiny::observe({
-    map_reactives$daily_map_shape_click <- input$daily_map_shape_click
-    map_reactives$daily_map_marker_click <- input$daily_map_marker_click
-    map_reactives$daily_map_click <- input$daily_map_click
-    # map_reactives$daily_map_draw_all_features <-
-    #   input$daily_map_draw_all_features
+    map_reactives$map_daily_shape_click <- input$map_daily_shape_click
+    map_reactives$map_daily_marker_click <- input$map_daily_marker_click
+    map_reactives$map_daily_click <- input$map_daily_click
+    # map_reactives$map_daily_draw_all_features <-
+    #   input$map_daily_draw_all_features
   })
   return(map_reactives)
 

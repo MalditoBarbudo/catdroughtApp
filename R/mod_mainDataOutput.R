@@ -135,13 +135,32 @@ mod_mainData <- function(
 
     var_daily <- data_reactives$var_daily
     display_daily <- data_reactives$display_daily
-    resolution_daily <- data_reactives$resolution_daily
+    resolution_daily <- tolower(data_reactives$resolution_daily)
 
-    # If we have shapes or file
+    # If we have markers, shapes or file
     if (display_daily != 'none') {
-      # nfi plots
+      # nfi plots (markers)
       if (display_daily == 'IFN plots') {
         sf_for_ts <- nfi_plots_sf_builder()
+        title_for_ts <- glue::glue(
+          "{map_reactives$map_daily_marker_click$id}",
+          " [{round(map_reactives$map_daily_marker_click$lng, 3)} lng,",
+          " {round(map_reactives$map_daily_marker_click$lat, 3)} lat]"
+        )
+        df_for_ts <- catdroughtdb$get_current_time_series(
+          sf_for_ts, var_daily, resolution_daily
+        )
+        dygraph_for_ts <- df_for_ts %>%
+          dplyr::select({{ var_daily }}) %>%
+          xts::as.xts(order.by = df_for_ts$day) %>%
+          dygraphs::dygraph(
+            main = title_for_ts,
+            ylab = glue::glue("{translate_app(var_daily, lang())}")
+          ) %>%
+          dygraphs::dySeries(
+            var_daily, label = map_reactives$map_daily_marker_click$id,
+            color = '#448714', strokeWidth = 2
+          )
       } else {
         if (display_daily == 'file') {
           # file
@@ -149,22 +168,57 @@ mod_mainData <- function(
         } else {
           # shapes
           sf_for_ts <- map_shape_sf_builder()
+          title_for_ts <- glue::glue(
+            "{map_reactives$map_daily_shape_click$id}"
+          )
+          df_for_ts <- catdroughtdb$get_current_time_series(
+            sf_for_ts, var_daily, resolution_daily
+          )
+          dygraph_for_ts <- df_for_ts %>%
+            dplyr::mutate(low = avg_pval - se_pval, high = avg_pval + se_pval) %>%
+            dplyr::select(avg_pval, low, high) %>%
+            xts::as.xts(order.by = df_for_ts$day) %>%
+            dygraphs::dygraph(
+              main = title_for_ts,
+              ylab = glue::glue("{translate_app(var_daily, lang())}")
+            ) %>%
+            dygraphs::dySeries(
+              c('low', 'avg_pval', 'high'),
+              label = map_reactives$map_daily_shape_click$id,
+              color = '#448714', strokeWidth = 2
+            )
         }
       }
     } else {
       # bare map clicks
       sf_for_ts <- map_click_sf_builder()
+      title_for_ts <- glue::glue(
+        "[{round(map_reactives$map_daily_click$lng, 3)} lng,",
+        " {round(map_reactives$map_daily_click$lat, 3)} lat]"
+      )
+      df_for_ts <- catdroughtdb$get_current_time_series(
+        sf_for_ts, var_daily, resolution_daily
+      )
+      dygraph_for_ts <- df_for_ts %>%
+        dplyr::select({{ var_daily }}) %>%
+        xts::as.xts(order.by = df_for_ts$day) %>%
+        dygraphs::dygraph(
+          main = title_for_ts,
+          ylab = glue::glue("{translate_app(var_daily, lang())}")
+        ) %>%
+        dygraphs::dySeries(
+          c(var_daily), label = 'Point',
+          color = '#448714', strokeWidth = 2
+        )
     }
 
-    res <- catdroughtdb$get_current_time_series(
-      sf_for_ts, var_daily, resolution_daily
+    res <- list(
+      data = df_for_ts,
+      dygraph = dygraph_for_ts
     )
 
     return(res)
   })
-
-
-
 
   ## reactives to return ####
   main_data_reactives <- shiny::reactiveValues()
