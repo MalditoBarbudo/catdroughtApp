@@ -88,7 +88,7 @@ $(document).on('shiny:disconnected', function(event) {
           ## options
           position = 'left', fluid = TRUE,
           sidebarPanel = shiny::sidebarPanel(
-            width = 3,
+            width = 4,
             # this is gonna be a tabsetPanel, for data selection, save and help.
             # tabset panel
             shiny::tabsetPanel(
@@ -108,9 +108,9 @@ $(document).on('shiny:disconnected', function(event) {
             )
           ), # end of sidebarPanel
           mainPanel = shiny::mainPanel(
-            width = 9,
+            width = 8,
             shiny::div(
-              id = 'main_div',
+              id = 'overlay_div',
               shiny::tabsetPanel(
                 id = 'main_panel_tabset', type = 'pills',
                 shiny::tabPanel(

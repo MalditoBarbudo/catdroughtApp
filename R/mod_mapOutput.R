@@ -64,6 +64,18 @@ mod_map <- function(
       reverse = palettes_dictionary[[var_daily]][['rev']]
     )
 
+    # legend palette
+    legend_palette <- leaflet::colorNumeric(
+      palette = palettes_dictionary[[var_daily]][['pal']],
+      # domain = c(
+      #   palettes_dictionary[[var_daily]][['min']],
+      #   palettes_dictionary[[var_daily]][['max']]
+      # ),
+      domain = raster::values(leaflet_raster),
+      na.color = 'transparent',
+      reverse = !palettes_dictionary[[var_daily]][['rev']]
+    )
+
     leaflet::leaflet() %>%
       leaflet::setView(1.744, 41.726, zoom = 8) %>%
       leaflet::addProviderTiles(
@@ -84,10 +96,12 @@ mod_map <- function(
         colors = palette, opacity = 1
       ) %>%
       leaflet::addLegend(
-        pal = palette, values = raster::values(leaflet_raster),
+        pal = legend_palette, values = raster::values(leaflet_raster),
         title = translate_app(var_daily, lang()),
-        position = 'bottomright',
-        opacity = 1
+        position = 'bottomright', opacity = 1,
+        labFormat = leaflet::labelFormat(
+          transform = function(x) {sort(x, decreasing = TRUE)}
+        )
       )
   })
 

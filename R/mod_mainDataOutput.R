@@ -42,11 +42,11 @@ mod_mainData <- function(
   # 2. waiter overlay related to map id
   waiter_map <- waiter::Waiter$new(
     # 'mod_mapOutput-map_daily', color = '#E8EAEB'
-    'main_div', color = '#E8EAEB'
+    'overlay_div', color = '#E8EAEB'
   )
   waiter_ts <- waiter::Waiter$new(
     # 'mod_tsOutput-timeseries_daily', color = '#E8EAEB'
-    'main_div', color = '#E8EAEB'
+    'overlay_div', color = '#E8EAEB'
   )
 
   # data reactive with the raster ####
@@ -225,18 +225,6 @@ mod_mainData <- function(
       shiny::need(data_reactives$resolution_daily, 'No resolution selected')
     )
 
-    # waiter_map$show()
-    # waiter_map$update(
-    #   html = shiny::tagList(
-    #     hostess_raster$get_loader(
-    #       svg = 'images/hostess_image.svg',
-    #       progress_type = 'fill',
-    #       fill_direction = 'btt'
-    #     ),
-    #     shiny::h3(translate_app("progress_ts", lang())),
-    #     shiny::p(translate_app("progress_detail_ts", lang()))
-    #   )
-    # )
     waiter_ts$show()
     waiter_ts$update(
       html = shiny::tagList(
@@ -249,11 +237,8 @@ mod_mainData <- function(
         shiny::p(translate_app("progress_detail_ts", lang()))
       )
     )
-    # hostess_raster$start()
     hostess_ts$start()
-    # on.exit(hostess_raster$close())
     on.exit(hostess_ts$close(), add = TRUE)
-    # on.exit(waiter_map$hide(), add = TRUE)
     on.exit(waiter_ts$hide(), add = TRUE)
 
     var_daily <- data_reactives$var_daily
