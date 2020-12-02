@@ -4,8 +4,7 @@
 \alias{catdrought_app}
 \title{function to launch the catdrought app}
 \usage{
-catdrought_app(user = "guest", password = "guest", host = NULL,
-  port = NULL, dbname = "catdrought_db")
+catdrought_app()
 }
 \description{
 function to launch the catdrought app
