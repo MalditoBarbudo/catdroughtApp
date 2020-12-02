@@ -40,7 +40,10 @@ $(document).on('shiny:disconnected', function(event) {
   ## UI ####
   ui <- shiny::tagList(
     # shinyjs
-    shinyjs::useShinyjs(),
+    shinyjs::useShinyjs(),,
+    # waiter
+    waiter::use_waiter(),
+    waiter::use_hostess(),
 
     # css
     shiny::tags$head(

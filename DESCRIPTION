@@ -10,8 +10,6 @@ LazyData: true
 Imports: 
     shiny,
     shinyjs,
-    pool,
-    RPostgreSQL,
     leaflet,
     dygraphs,
     xts,
@@ -26,5 +24,7 @@ Imports:
     purrr,
     lubridate,
     rlang,
-    sf
+    sf,
+    waiter,
+    readr
 RoxygenNote: 6.1.1
