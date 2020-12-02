@@ -95,7 +95,13 @@ $(document).on('shiny:disconnected', function(event) {
                 title = mod_tab_translateOutput('data_translation'),
                 value = 'data_inputs_panel',
                 mod_dataInput('mod_dataInput')
-              ) # end of data panel
+              ), # end of data panel
+              # save panel
+              shiny::tabPanel(
+                title = mod_tab_translateOutput('save_translation'),
+                value = 'save_panel',
+                mod_saveOutput('mod_saveOutput')
+              )
             )
           ), # end of sidebarPanel
           mainPanel = shiny::mainPanel(
@@ -169,6 +175,12 @@ $(document).on('shiny:disconnected', function(event) {
       data_reactives, main_data_reactives,
       lang
     )
+    # save
+    shiny::callModule(
+      mod_save, 'mod_saveOutput',
+      main_data_reactives, data_reactives,
+      lang
+    )
 
     ## tab translations ####
     shiny::callModule(
@@ -186,6 +198,10 @@ $(document).on('shiny:disconnected', function(event) {
     shiny::callModule(
       mod_tab_translate, 'series_tab_translation',
       'series_tab_translation', lang
+    )
+    shiny::callModule(
+      mod_tab_translate, 'save_translation',
+      'save_translation', lang
     )
 
 

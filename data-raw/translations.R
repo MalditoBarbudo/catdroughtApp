@@ -61,6 +61,7 @@ tibble::tribble(
   "data_translation", "Dades", "Data", "Datos",
   "map_translation", "Mapa", "Map", "Mapa",
   'series_tab_translation', "Sèries temporals", "Time series", "Series temporales",
+  "save_translation", "Guardar", "Save", "Guardar",
 
   # modal dialog waiting
   'modal_waiting_p', "Extraient tots els valors per a l'àrea seleccionada. Això pot trigar algun temps depenent del tipus i mida de l'àrea seleccionada (~ 5-60s)", "Extracting all values for the selected area. This can take a while depending on the type and size of the selected area (5 ~ 60 secs)", "Extrayendo todos los valores para el área seleccionada. Esto puede tardar algún tiempo dependiendo del tipo y tamaño del área seleccionada (~ 5-60s)",
@@ -71,7 +72,13 @@ tibble::tribble(
   'daily_trends_other_title', "pixel en [{round(clicked_pixel$lng, 3)} lng, {round(clicked_pixel$lat, 3)} lat]", "pixel at [{round(clicked_pixel$lng, 3)} lng, {round(clicked_pixel$lat, 3)} lat]", "pixel en [{round(clicked_pixel$lng, 3)} long, {round(clicked_pixel$lat, 3)} lat]",
 
   # main tab titles
-  'actual_tab_title', "Actual", "Current", "Actual"
+  'actual_tab_title', "Actual", "Current", "Actual",
+
+  # use file selection
+  "user_file_sel_label", "Selecciona l'arxiu a carregar", "Select the file to upload", "Selecciona el archivo a cargar",
+  "user_file_sel_buttonLabel", "Inspecciona...", "Browse...", "Inspecciona...",
+  "user_file_sel_placeholder", "Cap fitxer seleccionat", "No file selected", "Ningún archivo seleccionado",
+  "file_text", 'El fitxer pot ser un shapefile (comprimit en un fitxer zip) o un fitxer GeoPackage (.gpkg). Han de tenir un camp anomenat "id" amb els identificadors dels geometries continguts.', 'File can be a shapefile (compressed in a zip file) or GeoPackage file (.gpkg). They must have a field called "id" with the identifiers of the contained geometries.', 'El archivo puede ser un shapefile (comprimido en un archivo zip) o un archivo GeoPackage (.gpkg). Deben tener un campo llamado "id" con los identificadores de las geometrías contenidas.'
 
 
   # "sidebar_h4_title", "Controls", 'Controls', "Controles",
