@@ -33,14 +33,51 @@ mod_mainData <- function(
   catdroughtdb, lang
 ) {
 
+  ## waiter/hostess progress ####
+  # set a progress with waiter. We will use infinite TRUE, that way we dont
+  # need to calculate any steps durations
+  # 1. hostess progress
+  hostess_raster <- waiter::Hostess$new(infinite = TRUE)
+  hostess_ts <- waiter::Hostess$new(infinite = TRUE)
+  # 2. waiter overlay related to map id
+  waiter_map <- waiter::Waiter$new(
+    # 'mod_mapOutput-map_daily', color = '#E8EAEB'
+    'main_div', color = '#E8EAEB'
+  )
+  waiter_ts <- waiter::Waiter$new(
+    # 'mod_tsOutput-timeseries_daily', color = '#E8EAEB'
+    'main_div', color = '#E8EAEB'
+  )
+
   # data reactive with the raster ####
   raster_selected_daily <- shiny::reactive({
 
+    # requirements
+    # shiny::req(
+    #   data_reactives$var_daily, data_reactives$date_daily,
+    #   data_reactives$resolution_daily, cancelOutput = TRUE
+    # )
     shiny::validate(
       # shiny::need(data_reactives$var_daily, 'No variable selected'),
       shiny::need(data_reactives$date_daily, 'No date selected'),
       shiny::need(data_reactives$resolution_daily, 'No resolution selected')
     )
+
+    waiter_map$show()
+    waiter_map$update(
+      html = shiny::tagList(
+        hostess_raster$get_loader(
+          svg = 'images/hostess_image.svg',
+          progress_type = 'fill',
+          fill_direction = 'btt'
+        ),
+        shiny::h3(translate_app("progress_raster", lang())),
+        shiny::p(translate_app("progress_detail_raster", lang()))
+      )
+    )
+    hostess_raster$start()
+    on.exit(hostess_raster$close())
+    on.exit(waiter_map$hide(), add = TRUE)
 
     # date
     date_sel <- as.character(data_reactives$date_daily)
@@ -176,11 +213,48 @@ mod_mainData <- function(
   })
 
   timeseries_data <- shiny::reactive({
+
+    # requirements
+    # shiny::req(
+    #   data_reactives$var_daily, data_reactives$display_daily,
+    #   data_reactives$resolution_daily, cancelOutput = TRUE
+    # )
     shiny::validate(
       shiny::need(data_reactives$var_daily, 'No variable selected'),
       shiny::need(data_reactives$display_daily, 'No display selected'),
       shiny::need(data_reactives$resolution_daily, 'No resolution selected')
     )
+
+    # waiter_map$show()
+    # waiter_map$update(
+    #   html = shiny::tagList(
+    #     hostess_raster$get_loader(
+    #       svg = 'images/hostess_image.svg',
+    #       progress_type = 'fill',
+    #       fill_direction = 'btt'
+    #     ),
+    #     shiny::h3(translate_app("progress_ts", lang())),
+    #     shiny::p(translate_app("progress_detail_ts", lang()))
+    #   )
+    # )
+    waiter_ts$show()
+    waiter_ts$update(
+      html = shiny::tagList(
+        hostess_ts$get_loader(
+          svg = 'images/hostess_image.svg',
+          progress_type = 'fill',
+          fill_direction = 'btt'
+        ),
+        shiny::h3(translate_app("progress_ts", lang())),
+        shiny::p(translate_app("progress_detail_ts", lang()))
+      )
+    )
+    # hostess_raster$start()
+    hostess_ts$start()
+    # on.exit(hostess_raster$close())
+    on.exit(hostess_ts$close(), add = TRUE)
+    # on.exit(waiter_map$hide(), add = TRUE)
+    on.exit(waiter_ts$hide(), add = TRUE)
 
     var_daily <- data_reactives$var_daily
     display_daily <- data_reactives$display_daily

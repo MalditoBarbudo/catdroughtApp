@@ -40,7 +40,7 @@ $(document).on('shiny:disconnected', function(event) {
   ## UI ####
   ui <- shiny::tagList(
     # shinyjs
-    shinyjs::useShinyjs(),,
+    shinyjs::useShinyjs(),
     # waiter
     waiter::use_waiter(),
     waiter::use_hostess(),
@@ -109,18 +109,21 @@ $(document).on('shiny:disconnected', function(event) {
           ), # end of sidebarPanel
           mainPanel = shiny::mainPanel(
             width = 9,
-            shiny::tabsetPanel(
-              id = 'main_panel_tabset', type = 'pills',
-              shiny::tabPanel(
-                title = mod_tab_translateOutput('map_translation'),
-                # 'map',
-                value = 'map_panel',
-                mod_mapOutput('mod_mapOutput')
-              ),
-              shiny::tabPanel(
-                title = mod_tab_translateOutput('series_tab_translation'),
-                value = 'series_panel',
-                mod_tsOutput('mod_tsOutput')
+            shiny::div(
+              id = 'main_div',
+              shiny::tabsetPanel(
+                id = 'main_panel_tabset', type = 'pills',
+                shiny::tabPanel(
+                  title = mod_tab_translateOutput('map_translation'),
+                  # 'map',
+                  value = 'map_panel',
+                  mod_mapOutput('mod_mapOutput')
+                ),
+                shiny::tabPanel(
+                  title = mod_tab_translateOutput('series_tab_translation'),
+                  value = 'series_panel',
+                  mod_tsOutput('mod_tsOutput')
+                )
               )
             )
           )

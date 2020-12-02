@@ -34,6 +34,9 @@ mod_ts <- function(
 
   output$timeseries_daily <- dygraphs::renderDygraph({
 
+    # shiny::req(
+    #   main_data_reactives$timeseries_data, data_reactives$var_daily
+    # )
     shiny::validate(
       shiny::need(main_data_reactives$timeseries_data, 'no ts data yet'),
       shiny::need(data_reactives$var_daily, 'no inputs yet')

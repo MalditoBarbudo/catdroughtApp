@@ -38,10 +38,15 @@ mod_map <- function(
   ## map output ####
   output$map_daily <- leaflet::renderLeaflet({
 
-    shiny::validate(
-      shiny::need(main_data_reactives$raster_selected_daily, 'no raster yet'),
-      shiny::need(data_reactives$var_daily, 'no var yet')
+    shiny::req(
+      main_data_reactives$raster_selected_daily,
+      data_reactives$var_daily
     )
+
+    # shiny::validate(
+    #   shiny::need(main_data_reactives$raster_selected_daily, 'no raster yet'),
+    #   shiny::need(data_reactives$var_daily, 'no var yet')
+    # )
 
     raster_daily <- main_data_reactives$raster_selected_daily
     var_daily <- data_reactives$var_daily
@@ -90,6 +95,10 @@ mod_map <- function(
   # draw polygons observer
   shiny::observe({
 
+    # shiny::req(
+    #   data_reactives$display_daily, data_reactives$var_daily,
+    #   data_reactives$resolution_daily, cancelOutput = TRUE
+    # )
     shiny::validate(
       shiny::need(data_reactives$display_daily, 'no polygon/plots selected'),
       shiny::need(data_reactives$var_daily, 'no var selected'),

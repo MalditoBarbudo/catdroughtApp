@@ -82,7 +82,13 @@ tibble::tribble(
 
   # sweet alerts
   'sweet_alert_fileext_title', "Format de fitxer no acceptat", "File format not accepted", "Formato de archivo no aceptado",
-  'sweet_alert_fileext_text', "L'arxiu carregat ha de ser un zip o gpkg", "Uploaded file must be a zip or a gpkg file", "El archivo cargado debe ser un zip o un gpkg"
+  'sweet_alert_fileext_text', "L'arxiu carregat ha de ser un zip o gpkg", "Uploaded file must be a zip or a gpkg file", "El archivo cargado debe ser un zip o un gpkg",
+
+  # progress
+  "progress_raster", "Obtenció del ràster", "Retrieving the raster", "Obteniendo el ráster",
+  "progress_detail_raster", "Això pot trigar una mica", "This may take some time", "Esto puede llevar algo de tiempo",
+  "progress_ts", "Càlcul de les sèries temporals", "Calculating the time series", "Calculando las series temporales",
+  "progress_detail_ts", "Això pot trigar una mica, en funció del nombre i / o la mida dels objectes espacials", "This may take some time, depending on the number and/or size of the spatial objects", "Esto puede llevar algún tiempo, dependiendo de número y/o tamaño de los objetos espaciales"
 
 
   # "sidebar_h4_title", "Controls", 'Controls', "Controles",
