@@ -47,7 +47,8 @@ mod_data <- function(
     ## choices
     # dates
     date_daily_choices <- seq(
-      lubridate::ymd(Sys.Date() - 366), lubridate::ymd(Sys.Date() - 1),
+      # lubridate::ymd(Sys.Date() - 366), lubridate::ymd(Sys.Date() - 1),
+      lubridate::ymd(Sys.Date() - 366), lubridate::ymd('2020-12-08'),
       by = 'days'
     )
     # variable groups as per Miquel
@@ -90,7 +91,7 @@ mod_data <- function(
       # date sel
       shiny::dateInput(
         ns('date_daily'), translate_app('date_daily_label', lang_declared),
-        value = lubridate::ymd(Sys.Date() - 1),
+        value = date_daily_choices[length(date_daily_choices)],
         min = date_daily_choices[1],
         max = date_daily_choices[length(date_daily_choices)],
         weekstart = 1, language = dates_lang
@@ -128,14 +129,14 @@ mod_data <- function(
             )
           )
         )
-      ), # end of hidden file selector
-      # resoltion sel
-      shiny::radioButtons(
-        ns('resolution_daily'), translate_app('resolution_daily_label', lang_declared),
-        choices = c('Smoothed', '1km', '200m') %>%
-          magrittr::set_names(translate_app(., lang_declared)),
-        selected = 'Smoothed'
-      )
+      ) # end of hidden file selector
+      # # resoltion sel
+      # shiny::radioButtons(
+      #   ns('resolution_daily'), translate_app('resolution_daily_label', lang_declared),
+      #   choices = c('Smoothed', '1km', '200m') %>%
+      #     magrittr::set_names(translate_app(., lang_declared)),
+      #   selected = 'Smoothed'
+      # )
     )
 
   })
@@ -164,7 +165,7 @@ mod_data <- function(
     data_reactives$var_daily <- input$var_daily
     data_reactives$date_daily <- input$date_daily
     data_reactives$display_daily <- input$display_daily
-    data_reactives$resolution_daily <- input$resolution_daily
+    # data_reactives$resolution_daily <- input$resolution_daily
     data_reactives$user_file_sel <- input$user_file_sel
   })
 

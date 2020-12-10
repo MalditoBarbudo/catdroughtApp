@@ -52,15 +52,8 @@ mod_mainData <- function(
   # data reactive with the raster ####
   raster_selected_daily <- shiny::reactive({
 
-    # requirements
-    # shiny::req(
-    #   data_reactives$var_daily, data_reactives$date_daily,
-    #   data_reactives$resolution_daily, cancelOutput = TRUE
-    # )
     shiny::validate(
-      # shiny::need(data_reactives$var_daily, 'No variable selected'),
-      shiny::need(data_reactives$date_daily, 'No date selected'),
-      shiny::need(data_reactives$resolution_daily, 'No resolution selected')
+      shiny::need(data_reactives$date_daily, 'No date selected')
     )
 
     waiter_map$show()
@@ -82,11 +75,8 @@ mod_mainData <- function(
     # date
     date_sel <- as.character(data_reactives$date_daily)
 
-    # resolution
-    resolution_sel <- tolower(data_reactives$resolution_daily)
-
     # raster_res
-    raster_res <- catdroughtdb$get_raster(date_sel, resolution_sel, 'raster')
+    raster_res <- catdroughtdb$get_raster(date_sel, 'raster')
     return(raster_res)
   })
 
@@ -214,15 +204,9 @@ mod_mainData <- function(
 
   timeseries_data <- shiny::reactive({
 
-    # requirements
-    # shiny::req(
-    #   data_reactives$var_daily, data_reactives$display_daily,
-    #   data_reactives$resolution_daily, cancelOutput = TRUE
-    # )
     shiny::validate(
       shiny::need(data_reactives$var_daily, 'No variable selected'),
-      shiny::need(data_reactives$display_daily, 'No display selected'),
-      shiny::need(data_reactives$resolution_daily, 'No resolution selected')
+      shiny::need(data_reactives$display_daily, 'No display selected')
     )
 
     waiter_ts$show()
@@ -243,7 +227,6 @@ mod_mainData <- function(
 
     var_daily <- data_reactives$var_daily
     display_daily <- data_reactives$display_daily
-    resolution_daily <- tolower(data_reactives$resolution_daily)
 
     # If we have markers, shapes or file
     if (display_daily != 'none') {
@@ -256,7 +239,7 @@ mod_mainData <- function(
           " {round(map_reactives$map_daily_marker_click$lat, 3)} lat]"
         )
         df_for_ts <- catdroughtdb$get_current_time_series(
-          sf_for_ts, var_daily, resolution_daily
+          sf_for_ts, var_daily
         )
         dygraph_for_ts <- df_for_ts %>%
           dplyr::select({{ var_daily }}) %>%
@@ -275,23 +258,21 @@ mod_mainData <- function(
           sf_for_ts <- file_sf_builder()
           title_for_ts <- translate_app("file", lang())
           df_for_ts <- catdroughtdb$get_current_time_series(
-            sf_for_ts, var_daily, resolution_daily
+            sf_for_ts, var_daily
           )
+
+          browser()
           # if features are points, build the dygraph for points, if features are
           # polygons, build the dygraph for polygons
-          if ('avg_pval' %in% names(df_for_ts)) {
+          if ('mean' %in% names(df_for_ts)) {
             # polygons
             temp_data <- df_for_ts %>%
-              dplyr::mutate(
-                low = avg_pval - se_pval,
-                high = avg_pval + se_pval,
-              ) %>%
               dplyr::select(
-                day, polygon_id, {{var_daily}} := avg_pval, low, high
+                day, polygon_id, {{var_daily}} := mean, q_10, q_90
               ) %>%
               tidyr::pivot_wider(
                 names_from = 'polygon_id',
-                values_from = c(var_daily, 'low', 'high')
+                values_from = c(var_daily, 'q_10', 'q_90')
               )
 
             dygraph_for_ts <- temp_data %>%
@@ -370,18 +351,18 @@ mod_mainData <- function(
             "{map_reactives$map_daily_shape_click$id}"
           )
           df_for_ts <- catdroughtdb$get_current_time_series(
-            sf_for_ts, var_daily, resolution_daily
+            sf_for_ts, var_daily
           )
+
           dygraph_for_ts <- df_for_ts %>%
-            dplyr::mutate(low = avg_pval - se_pval, high = avg_pval + se_pval) %>%
-            dplyr::select(avg_pval, low, high) %>%
+            dplyr::select(mean, q_10, q_90) %>%
             xts::as.xts(order.by = df_for_ts$day) %>%
             dygraphs::dygraph(
               main = title_for_ts,
               ylab = glue::glue("{translate_app(var_daily, lang())}")
             ) %>%
             dygraphs::dySeries(
-              c('low', 'avg_pval', 'high'),
+              c('q_10', 'mean', 'q_90'),
               label = map_reactives$map_daily_shape_click$id,
               color = '#448714', strokeWidth = 2
             )
@@ -395,7 +376,7 @@ mod_mainData <- function(
         " {round(map_reactives$map_daily_click$lat, 3)} lat]"
       )
       df_for_ts <- catdroughtdb$get_current_time_series(
-        sf_for_ts, var_daily, resolution_daily
+        sf_for_ts, var_daily
       )
       dygraph_for_ts <- df_for_ts %>%
         dplyr::select({{ var_daily }}) %>%

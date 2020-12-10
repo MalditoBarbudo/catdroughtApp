@@ -109,14 +109,9 @@ mod_map <- function(
   # draw polygons observer
   shiny::observe({
 
-    # shiny::req(
-    #   data_reactives$display_daily, data_reactives$var_daily,
-    #   data_reactives$resolution_daily, cancelOutput = TRUE
-    # )
     shiny::validate(
       shiny::need(data_reactives$display_daily, 'no polygon/plots selected'),
-      shiny::need(data_reactives$var_daily, 'no var selected'),
-      shiny::need(data_reactives$resolution_daily, 'no res selected')
+      shiny::need(data_reactives$var_daily, 'no var selected')
     )
 
     display_daily <- data_reactives$display_daily

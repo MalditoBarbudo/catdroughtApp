@@ -63,10 +63,9 @@ mod_save <- function(
     filename = function() {
 
       date_daily <- data_reactives$date_daily
-      resolution_daily <- data_reactives$resolution_daily
 
       file_name <- glue::glue(
-        "catdrought_raster_{resolution_daily}_{date_daily}.tif"
+        "catdrought_raster_1km_{date_daily}.tif"
       )
 
       return(file_name)
@@ -86,10 +85,9 @@ mod_save <- function(
   output$download_series_daily <- shiny::downloadHandler(
     filename = function() {
       var_daily <- data_reactives$var_daily
-      resolution_daily <- data_reactives$resolution_daily
 
       file_name <- glue::glue(
-        "catdrought_ts_{var_daily}_{resolution_daily}.csv"
+        "catdrought_ts_{var_daily}_1km.csv"
       )
 
       return(file_name)
