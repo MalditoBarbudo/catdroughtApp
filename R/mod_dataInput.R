@@ -50,16 +50,25 @@ mod_data <- function(
       lubridate::ymd(Sys.Date() - 366), lubridate::ymd(Sys.Date() - 1),
       by = 'days'
     )
-    # variable names
+    # variable groups as per Miquel
+    # soil moisture: Theta, Psi, REW
+    # climate: PET
+    # evaporative surface: LAI
+    # water balance: Infiltration, RunOff, DeepDrainage, Esoil, Eplant
+    # drought stress: DDS
+
+
     # climate: 'PET'
     # fwb: 'LAI', 'Eplant', 'Esoil',  'Runoff', 'DeepDrainage'
     # soil_moisture: 'Psi', 'REW', 'Theta', 'Infiltration',
     # drought_stress: 'DDS'
+    soil_moisture_vars <- c("Theta", "Psi", "REW") %>%
+      magrittr::set_names(translate_app(., lang_declared))
     climate_vars <- c("PET") %>%
       magrittr::set_names(translate_app(., lang_declared))
-    fwb_vars <- c('LAI', 'Eplant', 'Esoil',  'Runoff', 'DeepDrainage') %>%
+    evap_surface_vars <- c('LAI') %>%
       magrittr::set_names(translate_app(., lang_declared))
-    soil_moisture_vars <- c("REW", "Theta", "Psi", "Infiltration") %>%
+    fwb_vars <- c("Infiltration", 'Runoff', 'DeepDrainage', 'Esoil', 'Eplant') %>%
       magrittr::set_names(translate_app(., lang_declared))
     drought_stress_vars <- c("DDS") %>%
       magrittr::set_names(translate_app(., lang_declared))
@@ -71,8 +80,9 @@ mod_data <- function(
         ns('var_daily'), translate_app('var_daily_label', lang_declared),
         choices = list(
           'Soil moisture' = soil_moisture_vars,
-          'Water balance' = fwb_vars,
           'Climate' = climate_vars,
+          'Evaporative surface' = evap_surface_vars,
+          'Water balance' = fwb_vars,
           'Drought stress' = drought_stress_vars
         ) %>% magrittr::set_names(translate_app(names(.), lang_declared))
       ),

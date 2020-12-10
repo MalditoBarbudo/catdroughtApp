@@ -1,10 +1,5 @@
 ## Script for creating the translations
 
-soil_moisture_vars <- c(
-  "Relative extractable water [0-1]", "Soil moisture content (%)", "Soil water potential (-MPa)"
-)
-drought_stress_vars <- c("Stress intensity", "Stress duration")
-
 tibble::tribble(
   ~text_id, ~translation_cat, ~translation_eng, ~translation_spa,
 
@@ -13,20 +8,21 @@ tibble::tribble(
   # "Rain", "Precipitació (mm)", "Precipitation (mm)", "Precipitación (mm)",
   "PET", "Evapo-transpiració potencial (mm)", "Potential evapo-transpiration (mm)", "Evap-transpiración potencial (mm)",
   # "NetPrec", "Precipitació neta (mm)", "Net precipitation (mm)", "Precipitación neta (mm)",
-  "Eplant", "Transpiració", "Plant transpiration (mm)", "Transpiración plantas (mm)",
-  "Esoil", "Evaporació del sòl", "Soil evaporation (mm)", "Evaporación del suelo (mm)",
+  "Eplant", "Transpiració (mm)", "Plant transpiration (mm)", "Transpiración plantas (mm)",
+  "Esoil", "Evaporació del sòl (mm)", "Soil evaporation (mm)", "Evaporación del suelo (mm)",
   "Runoff", "Escorrentia (mm)", "Run-off (mm)", "Escorrentía (mm)",
   "DeepDrainage", "Drenatje a profunditat (mm)", "Deep drainage (mm)", "Drenaje a profundidad (mm)",
   "REW", "Aigua extraïble relativa [0-1]", "Relative extractable water [0-1]", "Agua extraible relativa [0-1]",
-  "Theta", "Contingut hídric del sòl (%)", "Soil moisture content (%)", "Contenido hídrico del suelo (%)",
+  "Theta", "Contingut d'humitat (m3/m3)", "Soil moisture content (m3/m3)", "Contenido de humedad del suelo (m3/m3)",
   "Psi", "Potencial hídric del sòl (-MPa)", "Soil water potential (-MPa)", "Potencial hídrico del suelo (-MPa)",
   # "NDD", "Intensitat de l'estrès [0-1]", "Stress intensity [0-1]", "Intensidad del estrés [0-1]",
   "DDS", "Duració de l'estrès (dies)", "Stress duration (days)", "Duración del estrés (días)",
-  "LAI", "Índex d'àrea foliar", "Leaf area index", "Índice de área foliar",
-  "Infiltration", "Infiltració", "Infiltration", "Infiltración",
+  "LAI", "Índex d'àrea foliar (m2/m2)", "Leaf area index (m2/m2)", "Índice de área foliar (m2/m2)",
+  "Infiltration", "Infiltració (mm)", "Infiltration (mm)", "Infiltración (mm)",
   'Soil moisture', "Humitat del sòl", 'Soil moisture', "Humedad del suelo",
-  'Water balance', "Balanç hídric", 'Water balance', "Balance hídrico",
   'Climate', "Clima", 'Climate', "Clima",
+  'Evaporative surface', "Superficie evaporativa", 'Evaporative surface', "Superficie evaporativa",
+  'Water balance', "Balanç hídric", 'Water balance', "Balance hídrico",
   'Drought stress', "Estrès hídric", 'Drought stress', "Estrés hídrico",
 
   # date_daily sel
