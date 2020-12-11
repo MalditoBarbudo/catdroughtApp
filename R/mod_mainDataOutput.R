@@ -269,7 +269,12 @@ mod_mainData <- function(
               dplyr::mutate(
                 low_es = mean - stddev,
                 high_es = mean + stddev,
-                low_es = dplyr::if_else(low_es < 0, 0, low_es)
+                low_es = dplyr::if_else(
+                  low_es < 0 & var_daily != 'Psi', 0, low_es
+                ),
+                high_es = dplyr::if_else(
+                  high_es > 0 & var_daily == 'Psi', 0, high_es
+                )
               ) %>%
               dplyr::select(
                 day, polygon_id, {{var_daily}} := mean, low_es, high_es
@@ -362,7 +367,12 @@ mod_mainData <- function(
             dplyr::mutate(
               low_es = mean - stddev,
               high_es = mean + stddev,
-              low_es = dplyr::if_else(low_es < 0, 0, low_es)
+              low_es = dplyr::if_else(
+                low_es < 0 & var_daily != 'Psi', 0, low_es
+              ),
+              high_es = dplyr::if_else(
+                high_es > 0 & var_daily == 'Psi', 0, high_es
+              )
             ) %>%
             dplyr::select(
               low_es, {{var_daily}} := mean, high_es
