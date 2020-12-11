@@ -261,18 +261,22 @@ mod_mainData <- function(
             sf_for_ts, var_daily
           )
 
-          browser()
           # if features are points, build the dygraph for points, if features are
           # polygons, build the dygraph for polygons
           if ('mean' %in% names(df_for_ts)) {
             # polygons
             temp_data <- df_for_ts %>%
+              dplyr::mutate(
+                low_es = mean - stddev,
+                high_es = mean + stddev,
+                low_es = dplyr::if_else(low_es < 0, 0, low_es)
+              ) %>%
               dplyr::select(
-                day, polygon_id, {{var_daily}} := mean, q_10, q_90
+                day, polygon_id, {{var_daily}} := mean, low_es, high_es
               ) %>%
               tidyr::pivot_wider(
                 names_from = 'polygon_id',
-                values_from = c(var_daily, 'q_10', 'q_90')
+                values_from = c(var_daily, 'low_es', 'high_es')
               )
 
             dygraph_for_ts <- temp_data %>%
@@ -355,14 +359,36 @@ mod_mainData <- function(
           )
 
           dygraph_for_ts <- df_for_ts %>%
-            dplyr::select(mean, q_10, q_90) %>%
+            dplyr::mutate(
+              low_es = mean - stddev,
+              high_es = mean + stddev,
+              low_es = dplyr::if_else(low_es < 0, 0, low_es)
+            ) %>%
+            dplyr::select(
+              low_es, {{var_daily}} := mean, high_es
+            ) %>%
             xts::as.xts(order.by = df_for_ts$day) %>%
             dygraphs::dygraph(
               main = title_for_ts,
               ylab = glue::glue("{translate_app(var_daily, lang())}")
             ) %>%
+            dygraphs::dyAxis("x", drawGrid = FALSE) %>%
+            dygraphs::dyHighlight(
+              highlightCircleSize = 5,
+              highlightSeriesBackgroundAlpha = 1,
+              hideOnMouseOut = TRUE
+            ) %>%
+            dygraphs::dyLegend(
+              show = "follow", labelsSeparateLines = TRUE
+            ) %>%
+            dygraphs::dyOptions(
+              axisLineWidth = 1.5,
+              # drawGrid = FALSE,
+              axisLineColor = '#647a8d', axisLabelColor = '#647a8d',
+              includeZero = TRUE, gridLineColor = '#647a8d'
+            ) %>%
             dygraphs::dySeries(
-              c('q_10', 'mean', 'q_90'),
+              c('low_es', var_daily, 'high_es'),
               label = map_reactives$map_daily_shape_click$id,
               color = '#448714', strokeWidth = 2
             )
