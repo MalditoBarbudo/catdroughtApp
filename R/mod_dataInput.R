@@ -47,8 +47,8 @@ mod_data <- function(
     ## choices
     # dates
     date_daily_choices <- seq(
-      # lubridate::ymd(Sys.Date() - 366), lubridate::ymd(Sys.Date() - 1),
-      lubridate::ymd(Sys.Date() - 366), lubridate::ymd('2020-01-25'),
+      lubridate::ymd(Sys.Date() - 366), lubridate::ymd(Sys.Date() - 1),
+      # lubridate::ymd(Sys.Date() - 366), lubridate::ymd('2020-01-25'),
       by = 'days'
     )
     # variable groups as per Miquel

@@ -17,7 +17,7 @@ tibble::tribble(
   "Psi", "Potencial hídric del sòl (-MPa)", "Soil water potential (-MPa)", "Potencial hídrico del suelo (-MPa)",
   "DDS", "Intensitat de l'estrès [0-1]", "Stress intensity [0-1]", "Intensidad del estrés [0-1]",
   # "NDD", "Duració de l'estrès (dies)", "Stress duration (days)", "Duración del estrés (días)",
-  "LMFC", "LMFC", "LMFC", "LMFC",
+  "LMFC", "Contingut d'humitat de el combustible viu (%)", "Live Fuel Moisture Content (%)", "Contenido de humedad del combustible vivo (%)",
   "LAI", "Índex d'àrea foliar (m2/m2)", "Leaf area index (m2/m2)", "Índice de área foliar (m2/m2)",
   "Infiltration", "Infiltració (mm)", "Infiltration (mm)", "Infiltración (mm)",
   "Interception", "Intercepció (mm)", "Interception (mm)", "Intercepción (mm)",
