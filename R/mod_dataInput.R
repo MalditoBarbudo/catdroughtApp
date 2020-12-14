@@ -73,7 +73,7 @@ mod_data <- function(
     first_missing <-
       dplyr::first(which(!date_daily_choices_stripped %in% dates_available))
 
-    if (length(first_missing) > 0) {
+    if (!is.na(first_missing)) {
       date_daily_choices <- date_daily_choices[1:(first_missing - 1)]
     }
 
