@@ -4,7 +4,7 @@
 \alias{mod_data}
 \title{mod_data server function}
 \usage{
-mod_data(input, output, session, lang)
+mod_data(input, output, session, catdroughtdb, lang)
 }
 \arguments{
 \item{input}{internal}

@@ -161,7 +161,7 @@ $(document).on('shiny:disconnected', function(event) {
     # modules ####
     # data inputs
     data_reactives <- shiny::callModule(
-      mod_data, 'mod_dataInput', lang
+      mod_data, 'mod_dataInput', catdroughtdb, lang
     )
     # map
     map_reactives <- shiny::callModule(

@@ -28,7 +28,7 @@ mod_dataInput <- function(id) {
 #' @export
 mod_data <- function(
   input, output, session,
-  lang
+  catdroughtdb, lang
 ) {
 
   # renderUI ####
@@ -47,10 +47,36 @@ mod_data <- function(
     ## choices
     # dates
     date_daily_choices <- seq(
-      # lubridate::ymd(Sys.Date() - 366), lubridate::ymd(Sys.Date() - 1),
-      lubridate::ymd(Sys.Date() - 366), lubridate::ymd('2020-12-12'),
+      lubridate::ymd(Sys.Date() - 366), lubridate::ymd(Sys.Date() - 1),
+      # lubridate::ymd(Sys.Date() - 366), lubridate::ymd('2020-12-12'),
       by = 'days'
     )
+
+    # check dates available in the db and limit the imput to the first missing
+    # one minus 1:
+    date_daily_choices_stripped <- date_daily_choices %>%
+      as.character() %>%
+      stringr::str_remove_all('-')
+
+    dates_available <- pool::dbGetQuery(
+      catdroughtdb$.__enclos_env__$private$pool_conn, glue::glue(
+        "SELECT * FROM information_schema.tables
+        WHERE table_schema = 'daily'"
+      )
+    ) %>%
+      dplyr::select(table_name) %>%
+      dplyr::filter(stringr::str_detect(table_name, 'catdrought_low')) %>%
+      dplyr::arrange() %>%
+      dplyr::pull(table_name) %>%
+      stringr::str_extract('[0-9]+')
+
+    first_missing <-
+      dplyr::first(which(!date_daily_choices_stripped %in% dates_available))
+
+    if (length(first_missing) > 0) {
+      date_daily_choices <- date_daily_choices[1:(first_missing - 1)]
+    }
+
 
     # variable groups as per Miquel
     # soil moisture: Theta, Psi, REW
