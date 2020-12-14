@@ -47,22 +47,17 @@ mod_data <- function(
     ## choices
     # dates
     date_daily_choices <- seq(
-      lubridate::ymd(Sys.Date() - 366), lubridate::ymd(Sys.Date() - 1),
-      # lubridate::ymd(Sys.Date() - 366), lubridate::ymd('2020-01-25'),
+      # lubridate::ymd(Sys.Date() - 366), lubridate::ymd(Sys.Date() - 1),
+      lubridate::ymd(Sys.Date() - 366), lubridate::ymd('2020-12-12'),
       by = 'days'
     )
+
     # variable groups as per Miquel
     # soil moisture: Theta, Psi, REW
     # climate: PET
     # evaporative surface: LAI
     # water balance: Infiltration, RunOff, DeepDrainage, Esoil, Eplant
     # drought stress: DDS
-
-
-    # climate: 'PET'
-    # fwb: 'LAI', 'Eplant', 'Esoil',  'Runoff', 'DeepDrainage'
-    # soil_moisture: 'Psi', 'REW', 'Theta', 'Infiltration',
-    # drought_stress: 'DDS'
     soil_moisture_vars <- c("Theta", "Psi", "REW") %>%
       magrittr::set_names(translate_app(., lang_declared))
     climate_vars <- c("PET", "Precipitation") %>%
