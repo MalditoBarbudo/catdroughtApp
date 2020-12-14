@@ -156,3 +156,8 @@ div#shiny-notification-panel {
 .ldBar-label {
   color: #1C1C20;
 }
+
+/* datepicker z-index */
+.datepicker{
+  z-index: 9999 !important;
+}

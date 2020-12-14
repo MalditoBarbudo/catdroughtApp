@@ -48,7 +48,7 @@ mod_data <- function(
     # dates
     date_daily_choices <- seq(
       # lubridate::ymd(Sys.Date() - 366), lubridate::ymd(Sys.Date() - 1),
-      lubridate::ymd(Sys.Date() - 366), lubridate::ymd('2020-12-08'),
+      lubridate::ymd(Sys.Date() - 366), lubridate::ymd('2020-01-25'),
       by = 'days'
     )
     # variable groups as per Miquel
@@ -65,13 +65,13 @@ mod_data <- function(
     # drought_stress: 'DDS'
     soil_moisture_vars <- c("Theta", "Psi", "REW") %>%
       magrittr::set_names(translate_app(., lang_declared))
-    climate_vars <- c("PET") %>%
+    climate_vars <- c("PET", "Precipitation") %>%
       magrittr::set_names(translate_app(., lang_declared))
     evap_surface_vars <- c('LAI') %>%
       magrittr::set_names(translate_app(., lang_declared))
-    fwb_vars <- c("Infiltration", 'Runoff', 'DeepDrainage', 'Esoil', 'Eplant') %>%
+    fwb_vars <- c("Interception", "Infiltration", 'Runoff', 'DeepDrainage', 'Esoil', 'Eplant') %>%
       magrittr::set_names(translate_app(., lang_declared))
-    drought_stress_vars <- c("DDS") %>%
+    drought_stress_vars <- c("DDS", "LMFC") %>%
       magrittr::set_names(translate_app(., lang_declared))
 
     shiny::tagList(

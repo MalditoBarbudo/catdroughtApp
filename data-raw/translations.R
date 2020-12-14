@@ -5,7 +5,7 @@ tibble::tribble(
 
   # var_daily sel
   "var_daily_label", 'Tria la variable', 'Choose variable', 'Elige la variable',
-  # "Rain", "Precipitació (mm)", "Precipitation (mm)", "Precipitación (mm)",
+  "Precitpitation", "Precipitació (mm)", "Precipitation (mm)", "Precipitación (mm)",
   "PET", "Evapo-transpiració potencial (mm)", "Potential evapo-transpiration (mm)", "Evap-transpiración potencial (mm)",
   # "NetPrec", "Precipitació neta (mm)", "Net precipitation (mm)", "Precipitación neta (mm)",
   "Eplant", "Transpiració (mm)", "Plant transpiration (mm)", "Transpiración plantas (mm)",
@@ -17,8 +17,10 @@ tibble::tribble(
   "Psi", "Potencial hídric del sòl (-MPa)", "Soil water potential (-MPa)", "Potencial hídrico del suelo (-MPa)",
   "DDS", "Intensitat de l'estrès [0-1]", "Stress intensity [0-1]", "Intensidad del estrés [0-1]",
   # "NDD", "Duració de l'estrès (dies)", "Stress duration (days)", "Duración del estrés (días)",
+  "LMFC", "LMFC", "LMFC", "LMFC",
   "LAI", "Índex d'àrea foliar (m2/m2)", "Leaf area index (m2/m2)", "Índice de área foliar (m2/m2)",
   "Infiltration", "Infiltració (mm)", "Infiltration (mm)", "Infiltración (mm)",
+  "Interception", "Intercepció (mm)", "Interception (mm)", "Intercepción (mm)",
   'Soil moisture', "Humitat del sòl", 'Soil moisture', "Humedad del suelo",
   'Climate', "Clima", 'Climate', "Clima",
   'Evaporative surface', "Superficie evaporativa", 'Evaporative surface', "Superficie evaporativa",
