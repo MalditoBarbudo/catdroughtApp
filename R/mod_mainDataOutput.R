@@ -205,8 +205,8 @@ mod_mainData <- function(
   timeseries_data <- shiny::reactive({
 
     shiny::validate(
-      shiny::need(data_reactives$var_daily, 'No variable selected'),
-      shiny::need(data_reactives$display_daily, 'No display selected')
+      shiny::need(data_reactives$var_daily, 'No variable selected')#,
+      # shiny::need(data_reactives$display_daily, 'No display selected')
     )
 
     waiter_ts$show()
@@ -251,11 +251,32 @@ mod_mainData <- function(
           dygraphs::dySeries(
             var_daily, label = map_reactives$map_daily_marker_click$id,
             color = '#448714', strokeWidth = 2
+          ) %>%
+          dygraphs::dyAxis("x", drawGrid = FALSE) %>%
+          dygraphs::dyHighlight(
+            highlightCircleSize = 5,
+            highlightSeriesBackgroundAlpha = 1,
+            hideOnMouseOut = TRUE
+          ) %>%
+          dygraphs::dyLegend(
+            show = "follow", labelsSeparateLines = TRUE
+          ) %>%
+          dygraphs::dyOptions(
+            axisLineWidth = 1.5,
+            # drawGrid = FALSE,
+            axisLineColor = '#647a8d', axisLabelColor = '#647a8d',
+            includeZero = TRUE, gridLineColor = '#647a8d'
           )
       } else {
         if (display_daily == 'file') {
           # file
           sf_for_ts <- file_sf_builder()
+
+          # need rows in sf_for_ts
+          shiny::validate(
+            shiny::need(nrow(sf_for_ts) > 0, 'no rows in sf data')
+          )
+
           title_for_ts <- translate_app("file", lang())
           df_for_ts <- catdroughtdb$get_current_time_series(
             sf_for_ts, var_daily
@@ -356,6 +377,12 @@ mod_mainData <- function(
         } else {
           # shapes
           sf_for_ts <- map_shape_sf_builder()
+
+          # need rows in sf_for_ts
+          shiny::validate(
+            shiny::need(nrow(sf_for_ts) > 0, 'no rows in sf data')
+          )
+
           title_for_ts <- glue::glue(
             "{map_reactives$map_daily_shape_click$id}"
           )
@@ -424,6 +451,21 @@ mod_mainData <- function(
         dygraphs::dySeries(
           c(var_daily), label = 'Point',
           color = '#448714', strokeWidth = 2
+        ) %>%
+        dygraphs::dyAxis("x", drawGrid = FALSE) %>%
+        dygraphs::dyHighlight(
+          highlightCircleSize = 5,
+          highlightSeriesBackgroundAlpha = 1,
+          hideOnMouseOut = TRUE
+        ) %>%
+        dygraphs::dyLegend(
+          show = "follow", labelsSeparateLines = TRUE
+        ) %>%
+        dygraphs::dyOptions(
+          axisLineWidth = 1.5,
+          # drawGrid = FALSE,
+          axisLineColor = '#647a8d', axisLabelColor = '#647a8d',
+          includeZero = TRUE, gridLineColor = '#647a8d'
         )
     }
 
