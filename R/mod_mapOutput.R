@@ -153,9 +153,9 @@ mod_map <- function(
               group = 'display_daily',
               label = ~file_data %>% dplyr::pull(1),
               layerId = ~file_data %>% dplyr::pull(1),
-              weight = 1, smoothFactor = 1,
+              weight = 2, smoothFactor = 1,
               opacity = 1.0, fill = TRUE, fillOpacity = 0,
-              color = '#6C7A89FF',
+              color = 'black',
               highlightOptions = leaflet::highlightOptions(
                 color = "#CF000F", weight = 2,
                 bringToFront = TRUE,
