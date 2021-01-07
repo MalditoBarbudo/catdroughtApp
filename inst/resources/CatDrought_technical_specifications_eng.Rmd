@@ -1,0 +1,113 @@
+---
+title: "Technical specifications"
+author: "Miquel De Cáceres"
+date: "07/01/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+### Introduction
+
+**CatDrought App** provides daily estimations of soil water balance and forest drought stress on Catalonia for the last year (365 days). This app is designed to provide information about the live fule moisture content useful to estimate the dilay fire risk. The app daily updates the soil moisture and the vegetation stress from daily meteorology data. This data are obtained by interpolation of automatic meteorological stations network data provided by [Agencia Estatal de Meteorologia (AEMET)](http://www.aemet.es) and [Servei Meteorologic de Catalunya (SMC)](http://www.meteo.cat). To be able to calculate the estimations, daily meteorology data are used as input data for a forest water balance model. This model is parametrized with soil (obtained from global databases) and vegetation data (from the Spanish National Forest Inventory, NFI).
+
+**CatDrought App** provides data for both, NFI plots as well as 1km pixels (though the model works at 200m). Is important to stress that data provided by the app include model based calculations, meaning that the values provided can contain strong discrepancies with filed mesaured data.
+
+
+### Data sources
+
+  + **Topography** - Elevation, slope and aspect come from a digital elevation model at 30m.
+  + ** Meteorology** - Daily metorology interpolations are made based on measurements obtained from meteorolical stations from [Agencia Estatal de Meteorologia (AEMET)](http://www.aemet.es) y el [Servei Meteorologic de Catalunya (SMC)](http://www.meteo.cat). Given taht they are automatic estimations, and the data is downloaded at the end of the day, this data has not being throughfully quality assesed. This can generate "artifacts" in some areas.
+  + **Soil** - Texture, apparent density and soil organic matter are obtained from the global database **SoilGrids**, at 250m (Hengk et al. 2017). Bedrock deep was obtained from Shangguan et al. (2017), also at 250m
+  + **Vegetation** - Three data sources are used to obtain the forest structure and composition:
+    a. Spanish Forest Map 1:50000 (MFE50)
+    b. Third Spanish National Forest Inventory (see **NFI App**)
+    c. Biophisical variables from LiDAR (see **LiDAR App**)
+
+
+### Water balance model
+
+Water balance model detailed in De Cáceres et al. (2015) follows the design of previous models, mainly BILJOU (Granier et al. 1999) and SIERRA (Mouillot et al. 2001). THe model dilay updates the soil water content as a function of the vegetation structure and composition, the meteorology and soil properties. Soil water balance is the result of the difference between the processes determining water intake (precipitation) and water loss (canopy interception, transpiration, soil evaporation, runoff and deep drainage). Formulation details of each of these aspects can be found at De Cáceres et al. (2015). The model is also implemented in the [medfate](https://vegmod.ctfc.cat/software/medfate/) R package. Detailed documentation about the model can be found at the [medfatebook](https://vegmod.ctfc.cat/frames/medfatebook/).
+
+
+### Parametrization
+
+#### Spanish National Forest Inventory (NFI) plots
+
+Plots soil is divided in 4 layers [0-30 cm; 30-100 cm; 100 - SD and SD - 400 cm] where SD is the base of the R horizon as per Shangguan et al. (2017). Soil texture, organic matter content and apparent density of the different layers are obtained from SoilGrids (Hengl et al. 2017). Using the NFI 3 data for the surface rockiness, the rock proportion for each layer is calculated. NFI also provides tree diameters and heights, as well as the associated density factors. Leaf biomass is calculated for each species based on alloemtric equations based on the diameter and the competition level of the plot (Amextegui, Cabon et al. 2017), see the **Allometr App**. In the specific case of bushes, leaf biomass is calculated based on the plant height and the cover percentage meadured in the field, applying again allometric equations (De Cáceres et al. 2019). Specific leaf area of each species allows to convert the leaf biomass in leaf area, and from the latter the leaf area index can be calculated. Vertical distribution of roots in the soil is estimated by empiric equations obtained from Cabon et al. (2018).
+
+
+#### Pixels at 200m
+
+Pixel parametrization is similiar in some aspects to the one described previously. However, in the pixel's case, there is a lack of information measured in the field about forest composition and structure. This makes necessary to impute the information from those NFI plots with similar conditions. To achieve this, the Spanish Forest Map (MPFE50) is used to define forest categories based on the ocupation level of the main species present on the pixel. This categories are defined for both, pixels and NFI plots. Each pixel is assigned with one plot, based on the following criteria:
+
++ If only one NFI plot with the same forest category is found, this plot is selected.
++ If there is several NFI plots with the same forest category, but none is closer than 50km, the nearest one is selected.
++ If there is several NFI plots with the same forest category, closer than 50km, the one with the lower difference in elevation is selected.
+
+The imputation process described return the species composition for the pixel, as well as an preliminary estimation of the structure. This allows the estimation of the leaf area index, as described previously. Tree height and leaf area index in the 200m pixels are uniformized to match the LiDAR estimations (20m originally). Specifically, correction factors are applied, corresponding to the ration between the elevation (or leaf biomass) of the imputed plot and the pixel. Edaphic and root distribution parameters are calculated in the same way as for the NFI plots described previously.
+
+Is important to stress that the inputation process and the forest structure and composition estimation of the 200m pixels lead to errors at this resolution. Due to this, the calculation engine works at 200m resolution but provides water balance and soil water content estimations aggregated to 1km resolution.
+
+
+### Daily operations
+
+**CatDrought App** calculation engine feeds from meteorology data downloaded from the SMC and AEMET APIs. This data is downloaded and used to interpolate the meteorology for the day on the target location (NFI plot or 200m pixel), as described in De Cáceres et al. (2018) in a similar way as in the **Meteoland App**. Once the meteorology data is available for the location, the engine executes the water balance model, based on the previous day soil water content. THe model generates the water fluxes comforming the soil water balance and updates the soil water content. After this, the calculation engine estimates the drought stress of the vegetation from the soil water status and the species' hydraulic properties. Finally, results for 200m pixels are spatially aggregated to 1km pixels, the output rasters resolution.
+
+### Output variables
+
+The app generates different output variables, grouped by categories:
+
+**Soil moisture** - The following variables provide information about soil moisture, expressed in different units:
+
+Variable | Description | units
+---------|-------------|--------
+Soil moisture content | Moisure volumetric content, as the weighted mean of the different soil layers. Water volume at field capacity were used as weights | $m^3 \cdot m^{-3}$ 
+Relative extractable water | Water available in the soil, normalized between filed capacity [1] and wilting point at -1.5MPa [0]. | [0-1] 
+Soil water potential | Water potential from the soil top layer (0-30cm) | -MPa 
+
+**Meteorology** - The most relevant meteorological variables for the water balance model are precipitation (in both, liquid and solid form) and the potential evapotranspiration:
+
+Variable | Description | units
+---------|-------------|--------
+Potential evapotranspiration | Daily potential evapotranspiration, calculated from the Penman (1956) equation | $mm \cdot d^{-1}$ 
+Precipitation | Daily precipitation (including rain and snow) | $mm \cdot d^{-1}$ 
+
+**Evaporative surface** - Regarding vegetations, the most important variable for water balance is the leaf area index, as it determines the losses by rain interception as well as the water transpired by the plants. Leaf area index is considered constant in forest where all species are evergreen. In forest with deciduous species, leaf area index can change depending on the phenological status of the species.
+
+Variable | Description | units
+---------|-------------|--------
+Leaf area index | Leaf area index (LAI) estimates the leaf sruface regarding the soil surface | $m^2 \cdot m^{-2}$ 
+
+**Water balance** - The following variables provides information about the different components (water intake/loss) of the daily water balance:
+
+Variable | Description | units
+---------|-------------|--------
+Interception | Rain intercepted by the plants leaves and branches, and evaporated from these surfaces. The model does not include interception losses from snow. | $mm \cdot d^{-1}$ 
+Infiltration | Infiltrated water on the soil. The water can came from rain or melted snow. \ $mm \cdot d^{-1}$ 
+Runoff | Non infiltrated water, that generates a runoff. | $mm \cdot d^{-1}$ 
+Deep drainage | Filtered water to soil horizons or bedrock out of roots reach. | $mm \cdot d^{-1}$ 
+Soil evaporation | Water evaporated from the soil surface. | $mm \cdot d^{-1}$ 
+Tranpiration | Transported water from the soil to the leaves by the plant tissues, evaporated in the leaves retunrnig to the atmosphere. | $mm \cdot d^{-1}$ 
+
+**Drought stress** - At the same soil water content, some species suffer more intense drought stress than others. Plant relative conductance is a measurement of the transpiration decrease due to drought stress. The drought stress intensity is defined in the model as the complement of the plant relative conductance. Another way of assess the drought stress is by the live fule moisture content, as it depends on the leaf structure and the relative water content in the plant tissues.
+
+Variable | Description | units
+---------|-------------|--------
+Stress intensity | Weighted mean of the daily stress intensity for the different species, using LAI as weights. | [0-1] 
+Live fuel moisture content | Live fuel moisture content in relation to the dry weight. Is a weighted mean of the different species using LAI as weights. | %
+
+### References
+
++ Ameztegui, A., Cabon, A., De Cáceres, M. & Coll, L. (2017). Managing stand density to enhance the adaptability of Scots pine stands to climate change: A modelling approach. Ecol. Modell., 356, 141–150.
++ Cabon A, Martínez-Vilalta J, Martínez-de-Aragón J, De Cáceres M (2018) Applying the eco-hydrological equilibrium hypothesis to model root distribution in water-limited forests. Ecohydrology  11: e2015.
++ De Cáceres, M., Martinez-Vilalta, J., Coll, L., Llorens, P., Casals, P., Poyatos, R., et al. (2015). Coupling a water balance model with forest inventory data to predict drought stress: the role of forest structural changes vs. climate changes. Agric. For. Meteorol., 213, 77–90.
++ De Cáceres, M., Martin-StPaul, N., Turco, M., Cabon, A., Granda, V., 2018. Estimating daily meteorological data and downscaling climate models over landscapes. Environ. Model. Softw. 108, 186–196. https://doi.org/10.1016/j.envsoft.2018.08.003
++ De Cáceres, M., Casals, P., Gabriel, E., Castro, X., 2019. Scaling-up individual-level allometric equations to predict stand-level fuel loading in Mediterranean shrublands. Ann. For. Sci. 76, 87. https://doi.org/10.1007/s13595-019-0873-4
++ Granier, A., Bréda, N., Biron, P. & Villette, S. (1999). A lumped water balance model to evaluate duration and intensity of drought constraints in forest stands. Ecol. Modell., 116, 269–283.
++ Hengl, T., Mendes De Jesus, J., Heuvelink, G.B.M., Gonzalez, M.R., Kilibarda, M., Blagotí, A., Shangguan, W., Wright, M.N., Geng, X., Bauer-Marschallinger, B., Guevara, M.A., Vargas, R., Macmillan, R.A., Batjes, N.H., Leenaars, J.G.B., Ribeiro, E., Wheeler, I., Mantel, S., Kempen, B., 2017. SoilGrids250m: Global Gridded Soil Information Based on Machine Learning. PLoS One 12, e0169748. https://doi.org/10.1371/journal.pone.0169748.
++ Mouillot, F., Rambal, S. & Lavorel, S. (2001). A generic process-based SImulator for meditERRanean landscApes (SIERRA): design and validation exercises. For. Ecol. Manage., 147, 75–97.
++ Penman, H. L. 1956. Evaporation: An introductory survey. Netherlands Journal of Agricultural Science, 4, 9-29.
++ Shangguan, W., Hengl, T., Mendes de Jesus, J., Yuan, H., Dai, Y., 2017. Mapping the global depth to bedrock for land surface modeling. J. Adv. Model. Earth Syst. 9, 65–88. https://doi.org/10.1002/2016MS000686

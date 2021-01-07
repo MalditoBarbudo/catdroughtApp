@@ -1,0 +1,115 @@
+---
+title: "Especificacions tècniques"
+author: "Miquel De Cáceres"
+date: "28/12/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+### Introducció
+
+L'aplicació **CatDrought App** proporciona estimacions diàries de balanç hídric edàfic i estrés per sequera dels boscos de Catalunya del darrer any. Aquest servei està pensat per proporcionar informació sobre la humitat del combustible forestal que resulti d'utilitat per a estimar el perill d'incendi diari. L'aplicació actualitza diàriament la humitat del sòl i l'estrés de la vegetació a partir de dades de meteorologia diària obtingudes per interpolació a partir de dades de les xarxes d'estacions automàtiques proporcionades l'[Agencia Estatal de Meteorologia (AEMET)](http://www.aemet.es) i el [Servei Meteorologic de Catalunya (SMC)](http://www.meteo.cat). Per a poder realitzar els càlculs, les dades de meteorologia diària s'empren com a entrada d'un model de balanç hídric forestal parametritzat amb dades edàfiques (derivades de bases de dades globals) i de vegetació (a partir de l'inventari forestal nacional). 
+
+L'aplicació **CatDrought App** proporciona informació tant per a parcel·les de l'Inventari Forestal Nacional com per a píxels d'1 km de resolució, tot i que en el segon cas el model de balanç hídric opera a 200 m de resolució. És important recordar que les dades proporcionades inclouen càlculs basats en models, pel que els valors resultants poden contenir diferències notables respecte a mesuraments.
+
+
+### Fonts de dades
+
+  + **Topografia** - L'elevació, pendent i orientació provenen d'un model digital d'elevacions a 30 m de resolució.
+  + **Meteorologia** - Les interpolacions de meteorologia diària es realitzen a partir de mesuraments obtinguts en estacions meteorològiques de l'[Agencia Estatal de Meteorologia (AEMET)](http://www.aemet.es) i el [Servei Meteorologic de Catalunya (SMC)](http://www.meteo.cat). Donat que es tracta d'estacions automàtiques i les dades es descarreguen al final del dia en curs, aquestes no han passat tots els controls de qualitat desitjables, cosa que pot generar artefactes en les estimacions de balanç hídric d'algunes zones.
+  + **Sòls** - La textura, densitat aparent i matèria orgànica del sòl provenen de la base de dades global **SoilGrids** a 250 m (Hengl et al. 2017), mentre que la profunditat de la roca mare prové de Shangguan et al. (2017), també a 250 m de resolució. 
+  + **Vegetació** - S'utilitzen tres fonts de dades de la composició i estructura del bosc:  
+    a. Mapa Forestal de España a 1:50000 (MFE50)
+    b. Tercer Inventari Forestal Nacional (vegeu aplicació **IFN App**)
+    c. Variables biofísiques derivades de LiDAR (vegeu aplicació **LiDAR App**)
+
+
+### Model de balanç hídric
+
+El model de balanç hídric forestal descrit a De Cáceres et al. (2015) segueix el disseny de models anteriors, principalment BILJOU  (Granier et al. 1999) i SIERRA (Mouillot et al. 2001). El model actualitza diàriament el contingut d'aigua al sòl en funció de l'estructura i composició de la vegetació, la meteorologia i les propietats del sòl. El balanç d'aigua al sòl és el resultat de la diferencia entre els processos que determinen l'entrada d'aigua (precipitació) i la sortida d'aigua (intercepció de les capçades, transpiració, evaporació de la superfície del sòl, escolament superficial i percolació en fondària). Els detalls de la formulació de cada un d'aquests processos es pot trobar a De Cáceres et al. (2015). The model is implemented in the [medfate](https://vegmod.ctfc.cat/software/medfate/) R package i la documentació detallada del model es pot trobar al [medfatebook](https://vegmod.ctfc.cat/frames/medfatebook/).
+
+
+### Parametrització
+
+#### Parcel·les de l'Inventari Forestal Nacional (IFN)
+
+Els sòls es divideixen en 4 capes [0-30 cm; 30-100 cm; 100 - SD i SD - 400 cm] on SD és la fondària de l'horitzó R indicat a Shangguan et al. (2017). La textura, matèria orgànica i densitat aparent de les diferents capes del sòl s'obtenen de SoilGrids (Hengl et al. 2017). Aprofitant que IFN3 recull estimacions de rocositat superficial a les parcel·les, aquesta s'utilitza per estimar el percentatge de roques a les diferents capes del sòl. L'inventari forestal proporciona els diàmetres i alçades dels arbres mesurats, així com els seus factors de densitat associats. La biomassa foliar de cada espècie s'estima a partir de relacions al·lomètriques depenents del diàmetre i nivell de competència a la parcel·la (Ameztegui, Cabon et al. 2017), vegeu aplicació **Allometr App**. L'estimació de la biomassa foliar en el cas dels arbusts deriva de les alçades i percentatges de cobertura mesurats a camp i segueix també l'aplicació de relacions al·lomètriques (De Cáceres et al. 2019). L'àrea foliar específica de cada espècie permet traduir la biomassa foliar en superfície de fulla i d'aquí estimar l'índex d'àrea foliar. La distribució vertical de les arrels al sòl s'estima mitjançant les equacions empíriques obtingudes per Cabon et al. (2018).
+
+
+#### Píxels 200 m de resolució
+
+La parametrització de píxels és semblant en alguns aspectes al cas de les parcel·les. No obstant, en el cas dels píxels no hi ha informació mesurada a camp de l'estructura i composició del bosc, pel que es fa necessari imputar la informació de parcel·les de l'IFN de condicions semblants. Per aconseguir-ho, en primer lloc s'utilitza el Mapa Forestal de España (MFE50) per definir categories forestals a partir del nivell d'ocupació de les espècies principals. Aquestes categories es defineixen tant per a píxels de 200 m com per a parcel·les de l'IFN. A cada píxel se li assigna una parcel·la en funció dels següents criteris:
+
++ Si només existeix una parcel·la IFN amb la mateixa categoria forestal, aquesta parcel·la és la escollida.
++ Si existeixen diferents parcel·les IFN amb la mateixa categoria forestal però ninguna es troba més a prop de 50 km, la més propera és escollida.
++	Si existeixen parcel·les IFN amb la mateixa categoria forestal i més properes que 50 km, s'escull aquella parcel·la que presenti una diferència menor en elevació.
+
+El procés d'inputació descrit proporciona la composició d'espècies per al píxel, així com una estima preliminar de l'estructura. Aquesta permet estimar l'índex d'àrea foliar, tal i com hem descrit més amunt per a parcel·les de l'IFN. L'alçada dels arbres i l'index d'àrea foliar als pixels de 200 m es modifiquen per tal que coincideixin amb les estimacions derivades de LiDAR (originariament a 20 m de resolució). En concret s'apliquen factors de correcció que corresponen al ràtio entre l'alçada mitjana (respectivament, biomassa foliar) correponent a la localitat de la parcel·la imputada respecte a l'alçada mitjana (respectivament, biomassa foliar) al píxel objectiu. Els paràmetres edàfics i de distribució de les arrels en píxels es determinen de la mateixa manera que per a les parcel·les IFN.
+
+És important remarcar que tot el procés d'imputació i estimació de l'estructura i composició dels píxels de 200m comporta força errors a aquesta resolució. És per aquest motiu que el motor de càlcul treballa a aquesta resolució però proporciona estimacions de balanç hídric i humitat al sòl agregades a 1 km de resolució.
+
+
+### Operativa diària
+
+El motor de càlcul de l'aplicació **CatDrought App** es nodreix de dades meteorològiques descarregades de les API del SMC i l'AEMET. Aquestes dades es descarregen i s'utilitzen per a interpolar la meteorologia del dia en curs sobre la localitat objectiu (una parcel·la de l'IFN o un píxel de 200 m), tal i com es descriu a De Cáceres et al. (2018), i de manera semblant a com fa l'aplicació **Meteoland App**. Un cop les dades meteorològiques estan disponibles per una localitat, el motor executa el model de balanç hídric, tenint en compte l'estat d'humitat del sòl del dia anterior. El model genera els fluxos d'aigua que conformen el balanç hídric al sòl i actualitza l'estat d'humitat del mateix. A continuació, el motor de càlcul estima l'estrés per sequera de la vegetació a partir de l'estat d'humitat del sòl i les propietats hidràuliques de les diferents espècies. Finalment, els resultats generats per píxels a escala de 200 m s'agreguen espaialment en píxels d'1 km, que és la resolució dels ràsters de sortida.
+
+### Variables de sortida
+
+L'aplicació proporciona informació de diferents variables, agrupades per categories:
+
+**Humitat del sòl** - Les següents variables proporcionen informació sobre la humitat al sòl, expressades en diferents unitats:
+
+Variable 	| Definició               | Unitats 
+--------- | ----------------------- | ----- 
+Contingut d'humitat | Contingut volumètric d'humitat, prenent la mitjana ponderada de les diferents capes del sòl amb pesos definits segons el volum d'aigua a capacitat de camp. | $m^3 \cdot m^{-3}$ 
+Aigua extraïble relativa | Humitat disponible al sòl, normalitzada entre capacitat de camp [1] i el punt de marciment a -1.5 MPa [0]. | [0-1] 
+Potencial hídric del sòl | Potencial hídric de la capa més superficial del sòl (0-30 cm) | -MPa
+
+**Meteorologia** - Les variables meteorològiques més rellevants per al model de balanç hídric són la precipitació (ja sigui en forma líquida o sòlida) i l'evapotranspiració potencial:
+
+Variable 	| Definició               | Unitats 
+--------- | ----------------------- | ----- 
+Evapotranspiració potencial	| Evapotranspiració potencial diària, calculada a partir de l'equació de Penman (1956)	| $mm \cdot d^{-1}$
+Precipitació	| Precipitació diària (inclou pluja i neu)	| $mm \cdot d^{-1}$
+
+**Superfície evaporativa** - Pel que fa a la vegetació, la variable més important per al balanç hídric és l'índex d'àrea foliar, ja que determina tant les pèrdues per intercepció de la precipitació com la quantitat d'aigua transpirada per les plantes. L'índex d'àrea foliar es considera constant en boscos on totes les espècies són perennifolies, però pot variar segons l'estat fenològic dels boscos amb espècies caducifolies.
+
+Variable 	| Definició               | Unitats 
+--------- | ----------------------- | ----- 
+Índex d'àrea foliar	| L'índex d'àrea foliar (*Leaf area index* o *LAI*) estima la superfície de fulla per superfície de sòl	| $m^2 \cdot m^{-2}$
+
+**Balanç hídric** - Les següents variables proporcionen informació dels diferents components (entrades i sortides d'aigua) del balanç hídric diari:
+
+
+Variable 	| Definició               | Unitats 
+--------- | ----------------------- | ----- 
+Intercepció | Pluja interceptada per les plantes (fulles, branques) i evaporada des d'aquestes superfícies (el model no inclou pèrdues per intercepció de la neu). | $mm \cdot d^{-1}$ 
+Infiltració  | Aigua infiltrada al sòl, que pot provenir de la pluja que arriba a la superfície del sòl o de la fusió de la neu. | $mm \cdot d^{-1}$ 
+Escolament superficial  | Aigua que no s'infiltra al sòl sinó que genera un escolament superficial. | $mm \cdot d^{-1}$ 
+Drenatge en fondària  | Aigua que percola a horitzons del sòl o de la roca mare més enllà de l'abast de les arrels de les plantes. | $mm \cdot d^{-1}$ 
+Evaporació del sòl  | Aigua evaporada de la superfície del sòl. | $mm \cdot d^{-1}$ 
+Transpiració  | Aigua transportada des del sòl a les fulles pels teixits conductors de les plantes, evaporada a l'interior de les fulles i que retorna a l'atmosfera. | $mm \cdot d^{-1}$ 
+
+
+**Estrés per sequera** - Per a la mateixa humitat al sòl algunes espècies pateixen més l'estrés per sequera que altres. La conductància relativa de la planta és una mesura relativa de reducció de la transpiració deguda a l'estrés per sequera. La intensitat d'estrés per sequera es defineix al model com el complement de la conductància relativa de la planta. Una altra manera d'expressar l'estrés és mitjançant la humitat del combustible viu, que depèn de l'estructura de la fulla i el contingut relatiu d'aigua dels teixits de la planta.
+
+Variable 	| Definició               | Unitats 
+--------- | ----------------------- | ----- 
+Intensitat de l'estrés | Mitjana ponderada de la intensitat de l'estrés diari de les diferents espècies, fent servir els valors de LAI com a pesos. | [0-1] 
+Humitat del combustible viu | Contingut d'humitat del combustible viu en relació al pes sec. Mitjana ponderada de les diferents espècies, fent servir els valors de LAI com a pesos. | % 
+
+### Bibliografia
+
++ Ameztegui, A., Cabon, A., De Cáceres, M. & Coll, L. (2017). Managing stand density to enhance the adaptability of Scots pine stands to climate change: A modelling approach. Ecol. Modell., 356, 141–150.
++ Cabon A, Martínez-Vilalta J, Martínez-de-Aragón J, De Cáceres M (2018) Applying the eco-hydrological equilibrium hypothesis to model root distribution in water-limited forests. Ecohydrology  11: e2015.
++ De Cáceres, M., Martinez-Vilalta, J., Coll, L., Llorens, P., Casals, P., Poyatos, R., et al. (2015). Coupling a water balance model with forest inventory data to predict drought stress: the role of forest structural changes vs. climate changes. Agric. For. Meteorol., 213, 77–90.
++ De Cáceres, M., Martin-StPaul, N., Turco, M., Cabon, A., Granda, V., 2018. Estimating daily meteorological data and downscaling climate models over landscapes. Environ. Model. Softw. 108, 186–196. https://doi.org/10.1016/j.envsoft.2018.08.003
++ De Cáceres, M., Casals, P., Gabriel, E., Castro, X., 2019. Scaling-up individual-level allometric equations to predict stand-level fuel loading in Mediterranean shrublands. Ann. For. Sci. 76, 87. https://doi.org/10.1007/s13595-019-0873-4
++ Granier, A., Bréda, N., Biron, P. & Villette, S. (1999). A lumped water balance model to evaluate duration and intensity of drought constraints in forest stands. Ecol. Modell., 116, 269–283.
++ Hengl, T., Mendes De Jesus, J., Heuvelink, G.B.M., Gonzalez, M.R., Kilibarda, M., Blagotí, A., Shangguan, W., Wright, M.N., Geng, X., Bauer-Marschallinger, B., Guevara, M.A., Vargas, R., Macmillan, R.A., Batjes, N.H., Leenaars, J.G.B., Ribeiro, E., Wheeler, I., Mantel, S., Kempen, B., 2017. SoilGrids250m: Global Gridded Soil Information Based on Machine Learning. PLoS One 12, e0169748. https://doi.org/10.1371/journal.pone.0169748.
++ Mouillot, F., Rambal, S. & Lavorel, S. (2001). A generic process-based SImulator for meditERRanean landscApes (SIERRA): design and validation exercises. For. Ecol. Manage., 147, 75–97.
++ Penman, H. L. 1956. Evaporation: An introductory survey. Netherlands Journal of Agricultural Science, 4, 9-29.
++ Shangguan, W., Hengl, T., Mendes de Jesus, J., Yuan, H., Dai, Y., 2017. Mapping the global depth to bedrock for land surface modeling. J. Adv. Model. Earth Syst. 9, 65–88. https://doi.org/10.1002/2016MS000686

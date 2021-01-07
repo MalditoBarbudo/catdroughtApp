@@ -235,7 +235,7 @@ mod_mainData <- function(
         sf_for_ts <- nfi_plots_sf_builder()
         title_for_ts <- glue::glue(
           "{map_reactives$map_daily_marker_click$id}",
-          " [{round(map_reactives$map_daily_marker_click$lng, 3)} lng,",
+          " [{round(map_reactives$map_daily_marker_click$lng, 3)} long,",
           " {round(map_reactives$map_daily_marker_click$lat, 3)} lat]"
         )
         df_for_ts <- catdroughtdb$get_current_time_series(

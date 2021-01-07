@@ -128,6 +128,11 @@ $(document).on('shiny:disconnected', function(event) {
             )
           )
         )
+      ),
+      shiny::tabPanel(
+        title = mod_tab_translateOutput('tech_specs_translation'),
+        value = 'tech_spec_panel',
+        mod_techSpecsOutput('mod_techSpecsOutput')
       )
 
       # # navbarPage contents
@@ -187,6 +192,11 @@ $(document).on('shiny:disconnected', function(event) {
       main_data_reactives, data_reactives,
       lang
     )
+    # technical specifications module
+    shiny::callModule(
+      mod_techSpecs, 'mod_techSpecsOutput',
+      lang
+    )
 
     ## tab translations ####
     shiny::callModule(
@@ -208,6 +218,10 @@ $(document).on('shiny:disconnected', function(event) {
     shiny::callModule(
       mod_tab_translate, 'save_translation',
       'save_translation', lang
+    )
+    shiny::callModule(
+      mod_tab_translate, 'tech_specs_translation',
+      'tech_specs_translation', lang
     )
 
 

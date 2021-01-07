@@ -1,0 +1,114 @@
+---
+title: "Especificaciones técnicas"
+author: "Miquel De Cáceres"
+date: "07/01/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+### Introducción
+
+La aplicación **CatDrought App** proporciona estimaciones del balance hídrico del suelo y el estrés por sequía de los bosques de Cataluña para el último año natural (365 días). Ésta aplicación esta diseñada para proporcionar información sobre la húmedad del combustible forestal que resulte de utilidad para estimar el riesgo de incendio diario. La aplicación actualiza diariamente la humedad del suelo y el estrés de la vegetación a partir de los datos de meteorología diarios obtenidos mediante la interpolación de los datos de las redes de estaciones automáticas proporcionadas por la [Agencia Estatal de Meteorologia (AEMET)](http://www.aemet.es) y el [Servei Meteorologic de Catalunya (SMC)](http://www.meteo.cat). Para poder realizar los cálculos, los datos metereológicos diarios son empleados como datos de entrada de un modelo de balance hídrico forestal parametrizado con los datos edáficos (derivados de bases de datos globales) y de vegetación (a partir del Inventario Forestal Nacional, IFN).
+
+**CatDrought App** proporciona información tanto para parcelas del IFN como para píxeles de 1km de resolución (aunque el modelo de balance hídrico opera a 200m de resolución). Es importante recordar que los datos proporcionados incluyen cálculos basados en modelos, por lo que los valores resultantes pueden contener diferencias notables con respecto a las medidas reales.
+
+
+### Fuentes de datos
+
+  + **Topografía** - La elevación, pendiente y orientación provienen de un modelo digital de elevación a 30m de resolución.
+  + **Meteorología** - Las interpolaciones de metereología diaria se realizan a partir de medidas obtenidas en estaciones meteorológicas de la [Agencia Estatal de Meteorologia (AEMET)](http://www.aemet.es) y el [Servei Meteorologic de Catalunya (SMC)](http://www.meteo.cat). Dado que se trata de estimaciones automáticas y los datos se descargan al final del día en curso, estos no han pasado todos los controles de calidad deseables, lo que puede generar artefactos en las estimaciones de balance hídrico de algunas zonas.
+  + **Suelo** - La textura, densidad aparente y materia organica del suelo provienen de la base de datos global **SoilGrids** a 250m de resolución (Hengl et al. 2017), mientras que la profundidad de la roca madre proviene de Shangguan et al. (2017), también a 250m de resolución.
+  + **Vegetación** - Se utilizan tres fuentes de datos de la composición y estructura del bosque:
+    a. Mapa Forestal de España a 1:50000 (MFE50)
+    b. Tercer Inventario Forestal Nacional (ver la aplicación **IFN App**)
+    c. Variables biofísicas derivadas de LiDAR (ver la aplicación **LiDAR App**)
+
+
+### Modelo de balance hídrico
+
+El modelo de balance hídrico forestal descrito en De Cáceres et al. (2015) sigue el diseño de modelos anteriores, principalmente BILJOU (Granier et al. 1999) y SIERRA (Mouillot et al. 2001). El modelo actualiza diariamente el contenido de agua del suelo en función de la estructura y composición de la vegetación, la metereología y las propiedades del suelo. El balance de agua en el suelo es el resultado de la diferencia entre los procesos que determinan la entrada de agua (precipitación) y la salida de agua (intercepción de las copas, transpiración, evaporación de la superficie del suelo, escorrentia superficial y drenaje a profundidad). Los detalles de la formulación de cada uno de estos procesos se puede encontrar en De Cáceres et al. (2015). El modelo está implementado en el paquete de R [medfate](https://vegmod.ctfc.cat/software/medfate/) y la documentación detallada del modelo se puede encontrar en el [medfatebook](https://vegmod.ctfc.cat/frames/medfatebook/).
+
+
+### Parametrización
+
+#### Parcelas del Inventario Forestal Nacional (IFN)
+
+Los suelos se dividen en 4 capas [0-30 cm; 30-100 cm; 100 - SD y SD - 400 cm] donde SD es la base del horizonte R indicado en Shangguan et al. (2017). La textura, matería orgánica y la densidad aparente de las diferentes capas del suelo se obtienen de SoilGrids (Hengl et al. 2017). Aprovechando que el IFN 3 recoge estimaciones de rocosidad superficial en las parcelas, esta información se utiliza para estimar el porcentaje de rocas en las diferentes capas del suelo. El inventario forestal proporciona los diámetros y alturas de los árboles medidos, así como sus factores de densidad asociados. La biomasa foliar de cada especie se estima a partir de las relaciones alométricas dependientes del diámetro y el nivel de competencia de la parcela (Ameztegui, Cabon et al. 2017), ver la aplicación **Allometr App**. La estimación de la biomasa foliar en el caso de los arbustos se deriva de las alturas y porcentajes de cobertura medidos en campo y sigue también la aplicación de relaciones alométricas (De Cáceres et al. 2019). El área foliar específica de cada especie permite traducir la biomasa foliar en superficie foliar y de ésta se estima el índice de área foliar. La distribución vertical de las raíces en el suelo se estima mediante ecuaciones empíricas obtenidas por Cabon et al. (2018).
+
+
+#### Píxels a 200m de resolución
+
+La parametrización de píxeles se parece en algunos aspectos al caso de las parcelas. No obstante, en el caso de lo píxeles no hay información medida en campo de la estructura y composición del bosque, por lo que se hace necesario imputar la información de las parcelas del IFN con condiciones semejantes. Para conseguirlo, en primer lugar se utiliza el Mapa Forestal de ESpaña (MPFE50) para definir categorías forestales a partir del nivel de ocupación de las especies principales. Estas categorías se definen tanto para píxeles de 200m como para las parcelas del IFN. A cada píxel se le asigna una parcela en función de los siguientes criterios:
+
++ Si no existe mas que una parcela IFN con la misma categoría forestal, esta parcel es la seleccionada.
++ Si existen diferentes parcelas del IFN con la misma categoría forestal, pero ninguna se encuentra más cerca de 50km, la más cercana es seleccionada.
++ Si existen parcelas del IFN con la misma categoría forestal y más ceca de 50km, se elige aquella parcela que presente una diferencia menor en elevación.
+
+El proceso de imputación descrito proporciona la composición de especies para el píxel, así como una estimación preliminar de la estructura. Esto permite estimar el índice de área foliar, tal y como se ha descrito anteriormente para las parcelas del IFN. La altura de los árboles y el índice de área foliar en los pixels de 200m se modifican para que coincidan con las estimaciones derivadas de LiDAR (originalmente a 20m de resolución). En concreto, se aplican factores de corrección que corresponden al ratio entre la altura media (respectivamente, biomasa foliar) correspondiente a la localización de la parcela imputada respecto a la altura media (respectivamente biomasa foliar) del pixel objetivo. Los parámetros edáficos y de distribución de las raíces en los pixels se determinan de la misma manera que para las parcelas del IFN.
+
+Es imporante remarcar que todo el proceso de imputación y estimación de la estructura y composición de los pixels de 200m comporta errores en esta resolución. Es por este motivo que el motor de cálculo trabaja a esta resolución pero proporciona estimaciones de balance hídrico y humedad del suelo agregadas a 1km de resolución.
+
+
+### Operación diaria
+
+El motor de cálculo de la aplicación **CatDrought App** se nutre de datos meteorológicos descargados de las API del SMC y la AEMET. Estos datos se descargan y utilizan para interpolar la meteorología del día en curso sobre la localidad objetivo (parcela del IFN o pixel de 200m), tal y como se describe en De Cáceres et al. (2018), y de manera parecida a como ocurre en la aplicación **Meteoland App**. Una vez los datos meteorológicos están disponibles para una localidad, el motor ejecuta el modelo de balance hídrico, teniendo en cuenta el estado de humedad del suelo del día anterior. El modelo genera los flujos de agua que conforman el balance hídrico del suelo y actualiza el estado de humedad del mismo. A continuación, el motor de cálculo estima el estrés por sequía de la vegetación a partir de el estado de humedad del suelo y las propiedades hidráulicas de las diferentes especies. Finalmente, los resultados generados para los pixeles a escala de 200m se agregan espacialmente en píxeles de 1km, que es la resolución de los rásters de salida.
+
+### Variables de salida
+
+La aplicación proporciona información de diferentes variables, agrupadas por categorías:
+
+**Humedad del suelo** - Las siguientes variables proporcionan información sobre la humedad del suelo, expresadas en diferentes unidades:
+
+Variable | Definición | unidades
+---------|------------|----------
+Contenido de humedad | Contenido volumétrico de humedad, tomando la media ponderada de las diferentes capas del suelo con pesos definidos según el volúmen de agua a capacidad de campo | $m^3 \cdot m^{-3}$ 
+Agua extraíble relativa | Humedad disponible en el suelo, normalizada entre capacidad de campo [1] y el punto de marchitez a -1.5MPa [0]. | [0-1] 
+Potencial hídrico del suelo | Potencial hídrico de la capa más superficial del suelo (0-30cm) | -MPa 
+
+**Meteorología** - Las variables meteorológicas más relevantes para el modelo de balance hídrico son la precipitación (ya sea en foma líquida o sólida) y la evapotranspiración potencial:
+
+Variable | Definición | unidades
+---------|------------|----------
+Evapotranspiración potencial | Evapotranspiración potencial diaria, calculada a partir de la ecuación de Penman (1956) | $mm \cdot d^{-1}$ 
+Precipitación | Precipitación diaria (incluye lluvia y nieve) | $mm \cdot d^{-1}$
+
+**Superficie evaporativa** - Por lo que se refiere a la vegetación, la variable más importante para el balance hídrico es el índice de área foliar, ya que determina tanto las pérdidas por intercepción de la precipitación como la cantidad de agua transpirada por las plantas. El índice de área foliar se considera constante en bosques donde todas las especies son perennifolias, pero puede variar según el estado fenológico de los bosques con especies caducifolias.
+
+Variable | Definición | unidades
+---------|------------|----------
+Indice de área foliar | El índice de área folliar (LAI) estima la superficie de hoja por superficie de suelo | $m^2 \cdot m^{-2}$ 
+
+**Balance hídrico** - Las siguientes variables proporcionan información de los diferentes componentes (entradas y salidas de agua) del balance hídrico diario:
+
+
+Variable | Definición | unidades
+---------|------------|----------
+Intercepción | Lluvia interceptada por las plantas (hojas, ramas) y evaporada desde éstas superficies (el modelo no incluye pérdidas por intercepción de la nieve). | $mm \cdot d^{-1}$ 
+Infiltración | Agua infiltrada en el suelo, que puede provenir de la lluvia que llega a la superficie del suelo o de la nieve derretida. | $mm \cdot d^{-1}$ 
+Escorrentia superficial | Agua que no se infiltra en el suelo, sino que genera escorrentía superficial. | $mm \cdot d^{-1}$ 
+Drenaje a profundidad | Agua que filtra a horizontes del suelo o de la roca madre más allá del alcance de las raíces de las plantas. | $mm \cdot d^{-1}$ 
+Evaporación del suelo | Agua evaporada de la superficie del suelo. | $mm \cdot d^{-1}$ 
+Transpiración | Agua transportada desde el suelo a las hojas por los tejidos conductores de las plantas, evaporada en el interior de las hojas y que retorna a la atmósfera. | $mm \cdot d^{-1}$ 
+
+**Estrés por sequía** - A la misma humedad de suelo algunas especies sufren más el estrés por sequía que otras. La conductancia relativa de la planta es una medida relativa de reducción de la transpiración debida al estrés por sequía. La intensidad del estrés por sequía se define en el modelo como el complemento de la conductancia relativa de la planta. Otra manera de expresar el estrés es mediante la humedad del combustible vivo, que depende de la estructura de la hoja y el contenido relativo de agua de los tejidos de la planta.
+
+Variable | Definición | unidades
+---------|------------|----------
+Intensidad del estrés | Media ponderada de la intesidad del estrés diario de las diferentes especies, con los valores de LAI como pesos. | [0-1] 
+Humedad del combustible vivo | Contenido de humedad del combustible vivo en relación al peso seco. Media ponderada de las diferentes especies, con los valores de LAI como pesos. | % 
+
+### Bibliografia
+
++ Ameztegui, A., Cabon, A., De Cáceres, M. & Coll, L. (2017). Managing stand density to enhance the adaptability of Scots pine stands to climate change: A modelling approach. Ecol. Modell., 356, 141–150.
++ Cabon A, Martínez-Vilalta J, Martínez-de-Aragón J, De Cáceres M (2018) Applying the eco-hydrological equilibrium hypothesis to model root distribution in water-limited forests. Ecohydrology  11: e2015.
++ De Cáceres, M., Martinez-Vilalta, J., Coll, L., Llorens, P., Casals, P., Poyatos, R., et al. (2015). Coupling a water balance model with forest inventory data to predict drought stress: the role of forest structural changes vs. climate changes. Agric. For. Meteorol., 213, 77–90.
++ De Cáceres, M., Martin-StPaul, N., Turco, M., Cabon, A., Granda, V., 2018. Estimating daily meteorological data and downscaling climate models over landscapes. Environ. Model. Softw. 108, 186–196. https://doi.org/10.1016/j.envsoft.2018.08.003
++ De Cáceres, M., Casals, P., Gabriel, E., Castro, X., 2019. Scaling-up individual-level allometric equations to predict stand-level fuel loading in Mediterranean shrublands. Ann. For. Sci. 76, 87. https://doi.org/10.1007/s13595-019-0873-4
++ Granier, A., Bréda, N., Biron, P. & Villette, S. (1999). A lumped water balance model to evaluate duration and intensity of drought constraints in forest stands. Ecol. Modell., 116, 269–283.
++ Hengl, T., Mendes De Jesus, J., Heuvelink, G.B.M., Gonzalez, M.R., Kilibarda, M., Blagotí, A., Shangguan, W., Wright, M.N., Geng, X., Bauer-Marschallinger, B., Guevara, M.A., Vargas, R., Macmillan, R.A., Batjes, N.H., Leenaars, J.G.B., Ribeiro, E., Wheeler, I., Mantel, S., Kempen, B., 2017. SoilGrids250m: Global Gridded Soil Information Based on Machine Learning. PLoS One 12, e0169748. https://doi.org/10.1371/journal.pone.0169748.
++ Mouillot, F., Rambal, S. & Lavorel, S. (2001). A generic process-based SImulator for meditERRanean landscApes (SIERRA): design and validation exercises. For. Ecol. Manage., 147, 75–97.
++ Penman, H. L. 1956. Evaporation: An introductory survey. Netherlands Journal of Agricultural Science, 4, 9-29.
++ Shangguan, W., Hengl, T., Mendes de Jesus, J., Yuan, H., Dai, Y., 2017. Mapping the global depth to bedrock for land surface modeling. J. Adv. Model. Earth Syst. 9, 65–88. https://doi.org/10.1002/2016MS000686

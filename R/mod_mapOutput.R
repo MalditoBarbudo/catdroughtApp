@@ -80,14 +80,14 @@ mod_map <- function(
       leaflet::setView(1.744, 41.726, zoom = 8) %>%
       leaflet::addProviderTiles(
         leaflet::providers$Esri.WorldShadedRelief,
-        group = 'Relief'
+        group = translate_app('Relief', lang())
       ) %>%
       leaflet::addProviderTiles(
         leaflet::providers$Esri.WorldImagery,
-        group = 'Imagery'
+        group = translate_app('Imagery', lang())
       ) %>%
       leaflet::addLayersControl(
-        baseGroups = c('Relief', 'Imagery'),
+        baseGroups = c(translate_app('Relief', lang()), translate_app('Imagery', lang())),
         overlayGroups = c('raster'),
         options = leaflet::layersControlOptions(collapsed = FALSE, autoZIndex = FALSE)
       ) %>%
