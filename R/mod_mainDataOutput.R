@@ -432,15 +432,21 @@ mod_mainData <- function(
         }
       }
     } else {
+
       # bare map clicks
       sf_for_ts <- map_click_sf_builder()
       title_for_ts <- glue::glue(
-        "[{round(map_reactives$map_daily_click$lng, 3)} lng,",
+        "[{round(map_reactives$map_daily_click$lng, 3)} long,",
         " {round(map_reactives$map_daily_click$lat, 3)} lat]"
       )
-      df_for_ts <- catdroughtdb$get_current_time_series(
+      df_for_ts <- try(catdroughtdb$get_current_time_series(
         sf_for_ts, var_daily
+      ))
+
+      shiny::validate(
+        shiny::need(!inherits(df_for_ts, 'try-error'), 'no data in coords')
       )
+
       dygraph_for_ts <- df_for_ts %>%
         dplyr::select({{ var_daily }}) %>%
         xts::as.xts(order.by = df_for_ts$day) %>%
