@@ -75,13 +75,13 @@ sql_guest_activation_6 <- glue::glue_sql(
   "
 )
 
+RPostgres::dbExecute(conn, schema_query)
 RPostgres::dbExecute(conn, sql_guest_activation_1)
 RPostgres::dbExecute(conn, sql_guest_activation_2)
 RPostgres::dbExecute(conn, sql_guest_activation_3)
 RPostgres::dbExecute(conn, sql_guest_activation_4)
 RPostgres::dbExecute(conn, sql_guest_activation_5)
 RPostgres::dbExecute(conn, sql_guest_activation_6)
-RPostgres::dbExecute(conn, schema_query)
 
 # postgis extension
 rpostgis::pgPostGIS(conn, topology = TRUE, sfcgal = TRUE)
