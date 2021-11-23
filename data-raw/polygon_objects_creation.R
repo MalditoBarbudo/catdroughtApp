@@ -17,7 +17,7 @@ watersheds_polygons <- sf::read_sf('data-raw/shapefiles/Concajs.shp') %>%
   dplyr::select(poly_id = CONCA, geometry) %>%
   sf::st_cast('MULTIPOLYGON') %>%
   dplyr::group_by(poly_id) %>%
-  dplyr::summarise_all(sf::st_combine)
+  dplyr::summarise(dplyr::across(.fns = sf::st_combine))
 
 ## nfi plots ####
 nfidb <- lfcdata::nfi()
