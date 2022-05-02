@@ -38,16 +38,18 @@ mod_mainData <- function(
   # need to calculate any steps durations
   # 1. hostess progress
   hostess_raster <- waiter::Hostess$new(infinite = TRUE)
+  hostess_raster$set_loader(waiter::hostess_loader(
+    svg = 'images/hostess_image.svg',
+    progress_type = 'fill',
+    fill_direction = 'btt'
+  ))
   hostess_ts <- waiter::Hostess$new(infinite = TRUE)
-  # 2. waiter overlay related to map id
-  waiter_map <- waiter::Waiter$new(
-    # 'mod_mapOutput-map_daily', color = '#E8EAEB'
-    'overlay_div', color = '#E8EAEB'
-  )
-  waiter_ts <- waiter::Waiter$new(
-    # 'mod_tsOutput-timeseries_daily', color = '#E8EAEB'
-    'overlay_div', color = '#E8EAEB'
-  )
+  hostess_ts$set_loader(waiter::hostess_loader(
+    svg = 'images/hostess_image.svg',
+    progress_type = 'fill',
+    fill_direction = 'btt'
+  ))
+
 
   # data reactive with the raster ####
   raster_selected_daily <- shiny::reactive({
@@ -56,20 +58,31 @@ mod_mainData <- function(
       shiny::need(data_reactives$date_daily, 'No date selected')
     )
 
-    waiter_map$show()
-    waiter_map$update(
+    # 2. waiter overlay related to map id
+    waiter_map <- waiter::Waiter$new(
+      id = 'overlay_div',
       html = shiny::tagList(
-        hostess_raster$get_loader(
-          svg = 'images/hostess_image.svg',
-          progress_type = 'fill',
-          fill_direction = 'btt'
-        ),
+        hostess_raster$get_loader(),
         shiny::h3(translate_app("progress_raster", lang())),
         shiny::p(translate_app("progress_detail_raster", lang()))
-      )
+      ),
+      color = '#E8EAEB'
     )
+
+    waiter_map$show()
+    # waiter_map$update(
+    #   html = shiny::tagList(
+    #     hostess_raster$get_loader(
+    #       svg = 'images/hostess_image.svg',
+    #       progress_type = 'fill',
+    #       fill_direction = 'btt'
+    #     ),
+    #     shiny::h3(translate_app("progress_raster", lang())),
+    #     shiny::p(translate_app("progress_detail_raster", lang()))
+    #   )
+    # )
     hostess_raster$start()
-    on.exit(hostess_raster$close())
+    on.exit(hostess_raster$close(), add = TRUE)
     on.exit(waiter_map$hide(), add = TRUE)
 
     # date
@@ -209,18 +222,29 @@ mod_mainData <- function(
       # shiny::need(data_reactives$display_daily, 'No display selected')
     )
 
-    waiter_ts$show()
-    waiter_ts$update(
+
+    waiter_ts <- waiter::Waiter$new(
+      id = 'overlay_div',
       html = shiny::tagList(
-        hostess_ts$get_loader(
-          svg = 'images/hostess_image.svg',
-          progress_type = 'fill',
-          fill_direction = 'btt'
-        ),
+        hostess_ts$get_loader(),
         shiny::h3(translate_app("progress_ts", lang())),
         shiny::p(translate_app("progress_detail_ts", lang()))
-      )
+      ),
+      color = '#E8EAEB'
     )
+
+    waiter_ts$show()
+    # waiter_ts$update(
+    #   html = shiny::tagList(
+    #     hostess_ts$get_loader(
+    #       svg = 'images/hostess_image.svg',
+    #       progress_type = 'fill',
+    #       fill_direction = 'btt'
+    #     ),
+    #     shiny::h3(translate_app("progress_ts", lang())),
+    #     shiny::p(translate_app("progress_detail_ts", lang()))
+    #   )
+    # )
     hostess_ts$start()
     on.exit(hostess_ts$close(), add = TRUE)
     on.exit(waiter_ts$hide(), add = TRUE)
