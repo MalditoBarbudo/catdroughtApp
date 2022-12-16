@@ -95,7 +95,15 @@ tibble::tribble(
   "progress_detail_ts", "Això pot trigar una mica, en funció del nombre i / o la mida dels objectes espacials", "This may take some time, depending on the number and/or size of the spatial objects", "Esto puede llevar algún tiempo, dependiendo de número y/o tamaño de los objetos espaciales",
   # poly_id_var_check
   "poly_id_missing_title", "No s'ha trobat cap variable anomenada 'poly_id' al fitxer", "Not 'poly_id' variable found in file", "No se ha encontrado ninguna variable llamada 'poly_id' en el archivo",
-  "poly_id_missing_message", "S'ha fet servir la primera variable del fitxer com a poly_id", "First variable found in file used as poly_id", "Se ha usado la primera variable del archivo como poly_id"
+  "poly_id_missing_message", "S'ha fet servir la primera variable del fitxer com a poly_id", "First variable found in file used as poly_id", "Se ha usado la primera variable del archivo como poly_id",
+
+  # ....... TIPUS LLEGENDA .......
+  # ..............................
+
+  "estandard_label", "Normal", "Normal", "Normal",
+  "1st_label", "Discriminar valors alts","Discriminate higher values", "Discriminar valores altos",
+  "2nd_label","Discriminar valors baixos","Discriminate lower values", "Discriminar valores bajos",
+  'reverse_legend', "Invertir la paleta?","Reverse the palette?", "¿Invertir la paleta?",
 
 
   # "sidebar_h4_title", "Controls", 'Controls', "Controles",

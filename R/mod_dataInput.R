@@ -126,6 +126,51 @@ mod_data <- function(
           magrittr::set_names(translate_app(., lang_declared)),
         selected = 'none'
       ),
+
+
+
+
+      shiny::fluidRow(
+        shiny::column(6, align = 'center',
+
+                      # ..... RADIO BUT LEGEND COLOR ......
+                      # ...................................
+
+                      #      .) Dejo COMENTADA el CANVIO de COLOR de LEYENDA
+                      #      .) Me espero a hablar-lo con Miquel y Víctor
+
+                      shinyWidgets::radioGroupButtons(
+                        ns("legend_modify"),
+                        translate_app("type_legend_label", lang_declared),
+                        size = 'normal',
+                        choices = c( "1st_label" = "tip_1",
+                                                   "estandard_label" = "estandard",
+                                                   "2nd_label" = "tip_2"
+                        ) %>% magrittr::set_names(translate_app(names(.), lang_declared)),
+                        selected = 'estandard', direction = 'vertical',
+                        status = 'lfc_radiogroupbuttons'
+                      )
+        ),
+
+        shiny::column(6, align = 'center',
+
+                      # ... CHEK BUTTON LEGEND INVERT .....
+                      # ...................................
+
+                      #      .) Check Button
+                      #      .) Para invertir Leyenda
+
+                      shinyWidgets::prettyCheckbox(
+                        ns('legend_check'),
+                        translate_app('reverse_legend', lang_declared),
+                        status = 'success', shape = 'curve', fill = TRUE
+                      )
+        )
+      ), # end of Fluid Row
+
+
+
+
       shinyjs::hidden(
         shiny::div(
           id = ns('file_upload_panel'),
