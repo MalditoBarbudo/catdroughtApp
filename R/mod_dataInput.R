@@ -127,44 +127,41 @@ mod_data <- function(
         selected = 'none'
       ),
 
-
-
-
       shiny::fluidRow(
         shiny::column(6, align = 'center',
 
-                      # ..... RADIO BUT LEGEND COLOR ......
-                      # ...................................
+          # ..... RADIO BUT LEGEND COLOR ......
+          # ...................................
 
-                      #      .) Dejo COMENTADA el CANVIO de COLOR de LEYENDA
-                      #      .) Me espero a hablar-lo con Miquel y Víctor
+          #      .) Dejo COMENTADA el CANVIO de COLOR de LEYENDA
+          #      .) Me espero a hablar-lo con Miquel y Víctor
 
-                      shinyWidgets::radioGroupButtons(
-                        ns("legend_modify"),
-                        translate_app("type_legend_label", lang_declared),
-                        size = 'normal',
-                        choices = c( "1st_label" = "tip_1",
-                                                   "estandard_label" = "estandard",
-                                                   "2nd_label" = "tip_2"
-                        ) %>% magrittr::set_names(translate_app(names(.), lang_declared)),
-                        selected = 'estandard', direction = 'vertical',
-                        status = 'lfc_radiogroupbuttons'
-                      )
+          shinyWidgets::radioGroupButtons(
+            ns("legend_modify"),
+            translate_app("type_legend_label", lang_declared),
+            size = 'normal',
+            choices = c( "1st_label" = "tip_1",
+                         "estandard_label" = "estandard",
+                         "2nd_label" = "tip_2"
+            ) %>% magrittr::set_names(translate_app(names(.), lang_declared)),
+            selected = 'estandard', direction = 'vertical',
+            status = 'lfc_radiogroupbuttons'
+          )
         ),
 
         shiny::column(6, align = 'center',
 
-                      # ... CHEK BUTTON LEGEND INVERT .....
-                      # ...................................
+          # ... CHEK BUTTON LEGEND INVERT .....
+          # ...................................
 
-                      #      .) Check Button
-                      #      .) Para invertir Leyenda
+          #      .) Check Button
+          #      .) Para invertir Leyenda
 
-                      shinyWidgets::prettyCheckbox(
-                        ns('legend_check'),
-                        translate_app('reverse_legend', lang_declared),
-                        status = 'success', shape = 'curve', fill = TRUE
-                      )
+          shinyWidgets::prettyCheckbox(
+            ns('legend_check'),
+            translate_app('reverse_legend', lang_declared),
+            status = 'success', shape = 'curve', fill = TRUE
+          )
         )
       ), # end of Fluid Row
 
@@ -233,6 +230,8 @@ mod_data <- function(
     data_reactives$display_daily <- input$display_daily
     # data_reactives$resolution_daily <- input$resolution_daily
     data_reactives$user_file_sel <- input$user_file_sel
+    data_reactives$legend_check <- input$legend_check
+    data_reactives$legend_modify_reactive <- input$legend_modify
   })
 
   return(data_reactives)

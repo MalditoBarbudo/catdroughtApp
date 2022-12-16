@@ -76,6 +76,57 @@ mod_map <- function(
       reverse = !palettes_dictionary[[var_daily]][['rev']]
     )
 
+
+    # .............. NEW PALETES ..................
+    # .............................................
+
+    ra <- colorRampPalette(colors = c('#111689','#501ea2'), space = "Lab")(85)   # lila
+    rb <- colorRampPalette(colors = c('#501ea2','#9024a4'), space = "Lab")(85)
+    rc <- colorRampPalette(colors = c('#9024a4','#cf4c73'), space = "Lab")(10)
+    rd <- colorRampPalette(colors = c('#cf4c73','#fba337'), space = "Lab")(10)
+    re <- colorRampPalette(colors = c('#fba337','#f1f425'), space = "Lab")(10)   # groc
+
+    palette_max <- c(ra,rb,rc,rd,re)
+
+    ra2 <- colorRampPalette(colors = c('#111689','#501ea2'), space = "Lab")(10)   # lila
+    rb2 <- colorRampPalette(colors = c('#501ea2','#9024a4'), space = "Lab")(10)
+    rc2 <- colorRampPalette(colors = c('#9024a4','#cf4c73'), space = "Lab")(10)
+    rd2 <- colorRampPalette(colors = c('#cf4c73','#fba337'), space = "Lab")(85)
+    re2 <- colorRampPalette(colors = c('#fba337','#f1f425'), space = "Lab")(85)   # groc
+
+    palette_min <- c(ra2,rb2,rc2,rd2,re2)
+
+
+    palette_max <- leaflet::colorNumeric(
+      palette = palette_max,
+      # domain = c(
+      #   palettes_dictionary[[var_daily]][['min']],
+      #   palettes_dictionary[[var_daily]][['max']]
+      # ),
+      domain = raster::values(leaflet_raster),
+      na.color = 'transparent',
+      reverse = palettes_dictionary[[var_daily]][['rev']]
+    )
+
+
+    legend_palette_max <- leaflet::colorNumeric(
+      palette = palette_max,
+      # domain = c(
+      #   palettes_dictionary[[var_daily]][['min']],
+      #   palettes_dictionary[[var_daily]][['max']]
+      # ),
+      domain = raster::values(leaflet_raster),
+      na.color = 'transparent',
+      reverse = !palettes_dictionary[[var_daily]][['rev']]
+    )
+
+
+    # .............................................
+    # .............................................
+
+
+
+
     leaflet::leaflet() %>%
       leaflet::setView(1.744, 41.726, zoom = 8) %>%
       leaflet::addTiles(group = "OSM") %>%
@@ -117,6 +168,13 @@ mod_map <- function(
 
     display_daily <- data_reactives$display_daily
     var_daily <- data_reactives$var_daily
+
+    legend_check <- data_reactives$legend_check
+    legend_modify <- data_reactives$legend_modify_reactive
+
+
+    print(paste('legend_check =',legend_check))
+    print(paste('legend_modify = ',legend_modify))
 
     if (display_daily == 'none') {
       leaflet::leafletProxy('map_daily') %>%

@@ -100,6 +100,7 @@ tibble::tribble(
   # ....... TIPUS LLEGENDA .......
   # ..............................
 
+  "type_legend_label", "Configurar paleta","Config palette", "Configurar paleta",
   "estandard_label", "Normal", "Normal", "Normal",
   "1st_label", "Discriminar valors alts","Discriminate higher values", "Discriminar valores altos",
   "2nd_label","Discriminar valors baixos","Discriminate lower values", "Discriminar valores bajos",
