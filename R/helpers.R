@@ -28,7 +28,19 @@ translate_app <- function(id, lang) {
           if (nrow(data_filtered) < 1) {
             .x
           } else {
-            dplyr::pull(data_filtered, !! rlang::sym(glue::glue("translation_{lang}")))
+
+            # ........ SI PROBLEM ENCODING .......
+            # ....................................
+
+            #    .) A veces SHINY no transforma a UTF-8
+            #    .) La fórmula para hacerlo es
+            #    .) Encoding(text) <- "UTF-8"
+
+            text <- dplyr::pull(data_filtered, !! rlang::sym(glue::glue("translation_{lang}")))
+
+            Encoding(text) <- "UTF-8"
+            text
+
           }
         }
     )
