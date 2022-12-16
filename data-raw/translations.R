@@ -48,6 +48,7 @@ tibble::tribble(
   # map translations
   'Relief', 'Relleu', 'Relief', 'Relieve',
   'Imagery', 'Satèl·lit', 'Imagery', 'Satélite',
+  "OSM","OSM","OSM","OSM",
 
   # download raster button
   "download_raster_label", "Descàrrega el ràster", "Download raster", "Descarga el ráster",
