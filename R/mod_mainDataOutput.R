@@ -468,6 +468,7 @@ mod_mainData <- function(
               axisLineColor = '#647a8d', axisLabelColor = '#647a8d',
               includeZero = TRUE, gridLineColor = '#647a8d'
             ) %>%
+
             dygraphs::dySeries(
               c('low_es', var_daily, 'high_es'),
               label = map_reactives$map_daily_shape_click$id,
@@ -511,12 +512,14 @@ mod_mainData <- function(
         dygraphs::dyLegend(
           show = "follow", labelsSeparateLines = TRUE
         ) %>%
-        dygraphs::dyOptions(
-          axisLineWidth = 1.5,
-          # drawGrid = FALSE,
-          axisLineColor = '#647a8d', axisLabelColor = '#647a8d',
-          includeZero = TRUE, gridLineColor = '#647a8d'
-        )
+        dygraphs::dyOptions(fillGraph = TRUE, fillAlpha = 0.1 )
+
+        # dygraphs::dyOptions(
+        #   axisLineWidth = 1.5,
+        #   # drawGrid = FALSE,
+        #   axisLineColor = '#647a8d', axisLabelColor = '#647a8d',
+        #   includeZero = TRUE, gridLineColor = '#647a8d'
+        # )
     }
 
     res <- list(
