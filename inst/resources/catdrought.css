@@ -94,6 +94,7 @@ dygraph-axis-label.dygraph-axis-label-y {
   background-color: #647a8d !important;*/
   color: #424242;
   background-color: #d9dadb !important;
+  border: 1px solid grey;
   border-radius: 5px;
   padding: 5px;
 }
