@@ -232,6 +232,7 @@ mod_data <- function(
     data_reactives$user_file_sel <- input$user_file_sel
     data_reactives$legend_check <- input$legend_check
     data_reactives$legend_modify_reactive <- input$legend_modify
+
   })
 
   return(data_reactives)

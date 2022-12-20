@@ -164,3 +164,10 @@ div#shiny-notification-panel {
 .datepicker{
   z-index: 9999 !important;
 }
+
+/* Time Serie Explanation Div */
+#mod_tsOutput-explanation_divisions{
+  text-align: center;
+  color: #424242;
+  font-style: italic;
+}

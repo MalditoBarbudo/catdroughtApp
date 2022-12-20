@@ -106,6 +106,11 @@ tibble::tribble(
   "2nd_label","Discriminar valors baixos","Discriminate lower values", "Discriminar valores bajos",
   'reverse_legend', "Invertir la paleta?","Reverse the palette?", "¿Invertir la paleta?",
 
+  # .... Time Serie Divisions ....
+  # ..............................
+
+  'expl_divisions',"Mitja anual de la variable (línea verda) en la divisió seleccioanda. Desviació estàndard (àrea sombrejada de color verd clar)","Annual mean of the variable (green line) in the selected division. Standard deviation (shaded light green area)","Media anual de la variable (línea verde) en la división seleccioanda. Desviación estándar (área sombreada de color verde claro)",
+
 
   # "sidebar_h4_title", "Controls", 'Controls', "Controles",
   # "lidar_val_sel_label", "Seleccioneu la variable que voleu visualitzar", "Select the variable to visualize", "Selecciona la variable a visualizar",

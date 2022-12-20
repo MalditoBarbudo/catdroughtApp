@@ -11,7 +11,10 @@ mod_tsOutput <- function(id) {
 
   # UI ####
   shiny::tagList(
-    dygraphs::dygraphOutput(ns('timeseries_daily'))
+    dygraphs::dygraphOutput(ns('timeseries_daily')),
+    shiny::uiOutput(
+      ns('divisions_container')
+    )
   )
 }
 
@@ -48,7 +51,78 @@ mod_ts <- function(
     display_daily <- data_reactives$display_daily
     timeseries_data <- main_data_reactives$timeseries_data$dygraph
 
-    timeseries_data
   })
+
+
+  # ......... OUTPUT / EXPLICACIÓN .........
+  # ........................................
+
+  #      .) DIV que muestra explicacion sobre percentiles históricos
+  #      .) Solo se visualiza con las variables que tiene percentil
+
+  output$divisions_container <- shiny::renderUI({
+
+    # ......... INICIALIZAR .............
+    # ...................................
+
+    #       .) NS = IDs únicos
+    #       .) LANG = F(x) definida en APP.R
+    #       .) DATES_LANG = Cambio de nomenclatura de lengua
+
+    ns <- session$ns
+    lang_declared <- lang()
+    dates_lang <- switch(
+      lang_declared,
+      'cat' = 'ca',
+      'spa' = 'es',
+      'eng' = 'en'
+    )
+
+    shinyjs::hidden(
+      shiny::div(
+        id = ns('explanation_divisions'),
+        shiny::HTML(translate_app('expl_divisions', lang_declared))
+      )
+    )
+
+
+
+
+
+  })
+
+
+
+  # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  # ----------------------------    OBVSERVES    ---------------------------------
+  # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+  # ....... SHOW/HIDDEN EXPLICACION ........
+  # ........................................
+
+  #      .) Activar menú explicativo
+  #      .) SOLO cuando se haya activado DIVISION (Comarques, Provincies,...)
+
+
+  shiny::observe({
+
+    shiny::validate(
+      shiny::need(data_reactives$var_daily, 'no variable')
+    )
+    display_daily <- data_reactives$display_daily
+
+    print(display_daily)
+
+    if (display_daily == 'none') {
+      shinyjs::hide('explanation_divisions')
+    } else {
+      shinyjs::show('explanation_divisions')
+    }
+
+
+  })
+
+
+
 
 }
