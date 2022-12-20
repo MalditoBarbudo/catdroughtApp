@@ -242,6 +242,7 @@ mod_mainData <- function(
       # shiny::need(data_reactives$display_daily, 'No display selected')
     )
 
+    date_selected <- data_reactives$date_daily
 
     waiter_ts <- waiter::Waiter$new(
       id = 'overlay_div',
@@ -310,7 +311,8 @@ mod_mainData <- function(
             # drawGrid = FALSE,
             axisLineColor = '#647a8d', axisLabelColor = '#647a8d',
             includeZero = TRUE, gridLineColor = '#647a8d'
-          )
+          ) %>%
+          dygraphs::dyEvent(date_selected, date_selected, labelLoc = "top")
       } else {
         if (display_daily == 'file') {
           # file
@@ -365,6 +367,7 @@ mod_mainData <- function(
               dygraphs::dyLegend(
                 show = "follow", labelsSeparateLines = TRUE
               ) %>%
+              dygraphs::dyEvent(date_selected, date_selected, labelLoc = "top") %>%
               dygraphs::dyOptions(
                 axisLineWidth = 1.5,
                 # drawGrid = FALSE,
@@ -416,7 +419,8 @@ mod_mainData <- function(
                 # drawGrid = FALSE,
                 axisLineColor = '#647a8d', axisLabelColor = '#647a8d',
                 includeZero = TRUE, gridLineColor = '#647a8d'
-              )
+              ) %>%
+              dygraphs::dyEvent(date_selected, date_selected, labelLoc = "top")
           }
         } else {
           # shapes
@@ -473,7 +477,8 @@ mod_mainData <- function(
               c('low_es', var_daily, 'high_es'),
               label = map_reactives$map_daily_shape_click$id,
               color = '#448714', strokeWidth = 2
-            )
+            ) %>%
+            dygraphs::dyEvent(date_selected, date_selected, labelLoc = "top")
         }
       }
     } else {
@@ -512,7 +517,8 @@ mod_mainData <- function(
         dygraphs::dyLegend(
           show = "follow", labelsSeparateLines = TRUE
         ) %>%
-        dygraphs::dyOptions(fillGraph = TRUE, fillAlpha = 0.1 )
+        dygraphs::dyOptions(fillGraph = TRUE, fillAlpha = 0.1 ) %>%
+        dygraphs::dyEvent(date_selected, date_selected, labelLoc = "top")
 
         # dygraphs::dyOptions(
         #   axisLineWidth = 1.5,
