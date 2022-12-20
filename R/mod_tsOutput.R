@@ -85,10 +85,6 @@ mod_ts <- function(
       )
     )
 
-
-
-
-
   })
 
 
@@ -110,8 +106,6 @@ mod_ts <- function(
       shiny::need(data_reactives$var_daily, 'no variable')
     )
     display_daily <- data_reactives$display_daily
-
-    print(display_daily)
 
     if (display_daily == 'none') {
       shinyjs::hide('explanation_divisions')
