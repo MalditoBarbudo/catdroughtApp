@@ -142,7 +142,6 @@ mod_map <- function(
     # .............................................
     # .............................................
 
-
     leaflet::leaflet() %>%
       leaflet::setView(1.744, 41.726, zoom = 8) %>%
       leaflet.extras::addResetMapButton() %>%
