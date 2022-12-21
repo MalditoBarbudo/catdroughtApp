@@ -112,6 +112,15 @@ tibble::tribble(
   'expl_divisions',"Mitja anual de la variable (línea verda) en la divisió seleccioanda. Desviació estàndard (àrea sombrejada de color verd clar)","Annual mean of the variable (green line) in the selected division. Standard deviation (shaded light green area)","Media anual de la variable (línea verde) en la división seleccioanda. Desviación estándar (área sombreada de color verde claro)",
 
 
+  # ........ SAVE Options ........
+  # ..............................
+
+  "raster_download",'%%%%%% Descarga de Raster de píxeles de 100m x 100m y de 8 canales %%%%%%%%%%%','%%%%%% Descarga de Raster de píxeles de 100m x 100m y de 8 canales %%%%%%%%%%%','%%%%%% Descarga de Raster de píxeles de 100m x 100m y de 8 canales %%%%%%%%%%%',
+  "csv_download",'%%%%%%  Descarga CSV de la serie seleccionada con un total de columnas %%%%%% ','%%%%%%  Descarga CSV de la serie seleccionada con un total de columnas %%%%%% ','%%%%%%  Descarga CSV de la serie seleccionada con un total de columnas %%%%%% ',
+
+
+
+
   # "sidebar_h4_title", "Controls", 'Controls', "Controles",
   # "lidar_val_sel_label", "Seleccioneu la variable que voleu visualitzar", "Select the variable to visualize", "Selecciona la variable a visualizar",
   # "poly_type_sel_label", "Seleccioneu els polígons a agregar", "Select the polygons to aggregate", "Selecciona los polígonos a agregar",
