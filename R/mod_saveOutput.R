@@ -80,7 +80,7 @@ mod_save <- function(
           ),
           shiny::br(),
           shiny::column(12,
-            shiny::fluidRow(translate_app("csv_download", lang_declared), style = "text-align: center; padding: 15px;"),
+            shiny::fluidRow(shiny::HTML(translate_app("csv_download", lang_declared)), style = "text-align: center; padding: 15px;"),
             shiny::br(),
             shiny::fluidRow(align = 'center',
                 shiny::downloadButton(
