@@ -115,7 +115,7 @@ tibble::tribble(
   # ........ SAVE Options ........
   # ..............................
 
-  "raster_download",'%%%%%% Descarga de Raster de píxeles de 100m x 100m y de 8 canales %%%%%%%%%%%','%%%%%% Descarga de Raster de píxeles de 100m x 100m y de 8 canales %%%%%%%%%%%','%%%%%% Descarga de Raster de píxeles de 100m x 100m y de 8 canales %%%%%%%%%%%',
+  "raster_download",'Ràster CRS = WGS84 </br> Resolució Píxel (x = 0.012º, y = 0.009º) </br>Resolució Ràster (nrow = 282, ncol = 288, nlayers = 14)','CRS Raster = WGS84 </br>Pixel resolution (x = 0.012º, y = 0.009º) </br>Raster resolution (nrow = 282, ncol = 288, nlayers = 14).','Ráster CRS = WGS84 </br> Resolución Píxel (x = 0.012º, y = 0.009º) </br>Resolución Ráster (nrow = 282, ncol = 288, nlayers = 14)',
   "csv_download",'%%%%%%  Descarga CSV de la serie seleccionada con un total de columnas %%%%%% ','%%%%%%  Descarga CSV de la serie seleccionada con un total de columnas %%%%%% ','%%%%%%  Descarga CSV de la serie seleccionada con un total de columnas %%%%%% ',
 
 

@@ -67,27 +67,28 @@ mod_save <- function(
 
     shiny::tagList(
       shiny::fluidRow(
-          shiny::fluidRow(translate_app("raster_download", lang_declared), style = "text-align: center;"),
-          shiny::br(),
-          shiny::fluidRow(align = 'center',
-              # download button
-              shiny::downloadButton(
-                ns('download_raster_daily'),
-                translate_app('download_raster_label', lang())
-              )
+        shiny::column(12,
+          shiny::fluidRow(shiny::HTML(translate_app("raster_download", lang_declared)), style = "text-align: center; padding: 15px;"),
+            shiny::br(),
+            shiny::fluidRow(align = 'center',
+                # download button
+                shiny::downloadButton(
+                  ns('download_raster_daily'),
+                  translate_app('download_raster_label', lang())
+                )
+             )
           ),
-
           shiny::br(),
-          shiny::br(),
-
-          shiny::fluidRow(translate_app("csv_download", lang_declared), style = "text-align: center;"),
-          shiny::br(),
-          shiny::fluidRow(align = 'center',
-              shiny::downloadButton(
-                ns('download_series_daily'),
-                translate_app('download_series_label', lang())
-              )
+          shiny::column(12,
+            shiny::fluidRow(translate_app("csv_download", lang_declared), style = "text-align: center; padding: 15px;"),
+            shiny::br(),
+            shiny::fluidRow(align = 'center',
+                shiny::downloadButton(
+                  ns('download_series_daily'),
+                  translate_app('download_series_label', lang())
+                )
             )
+          )
 
       ) # end Fluid Row
     ) # end TAGLIST
