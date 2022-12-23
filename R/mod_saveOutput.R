@@ -45,26 +45,6 @@ mod_save <- function(
       'eng' = 'en'
     )
 
-    # shiny::tagList(
-    #   shiny::fluidRow(
-    #     shiny::column(
-    #       6, align = 'center',
-    #       # download button
-    #       shiny::downloadButton(
-    #         ns('download_raster_daily'),
-    #         translate_app('download_raster_label', lang())
-    #       )
-    #     ),
-    #     shiny::column(
-    #       6, align = 'center',
-    #       shiny::downloadButton(
-    #         ns('download_series_daily'),
-    #         translate_app('download_series_label', lang())
-    #       )
-    #     )
-    #   )
-    # )
-
     shiny::tagList(
       shiny::fluidRow(
         shiny::column(12,
@@ -94,6 +74,45 @@ mod_save <- function(
     ) # end TAGLIST
 
   }) # END Render UI
+
+
+  # ................  funcion DATAINPUT ...............
+  # ...................................................
+
+  #      .) Función OBTIENE DATOS para el CSV
+  #      .) La usaré en el readr::write_csv
+  #      .) CONDICION
+  #               .) SIN DIVISIONES -> NONE
+  #               .) CON DIVISIONES -> !NONE
+
+  #      .) SIN DIVISIONES
+  #               .) Obtengo la geometría
+  #               .) Obtengo los datos
+  #                    .) Los datos creo columna LON LAT
+  #                    .) Elimino POINT ID, que no aporta nada
+
+  #      .) CON DIVISIONES (comaracs, municipios,..)
+  #               .) Obtengo datos
+
+  dataInput <- reactive({
+
+       display_daily <- data_reactives$display_daily
+
+       if (display_daily == 'none') {
+
+         result_geom <- main_data_reactives$timeseries_data$sf$geometry
+         result_data <- main_data_reactives$timeseries_data$data %>%
+                          dplyr::mutate(
+                            lon_WGS84 = sf::st_coordinates(result_geom)[,1],
+                            lat_WGS84 = sf::st_coordinates(result_geom)[,2]
+                           ) %>% dplyr::select(-point_id)
+
+       } else {
+         result_data <- main_data_reactives$timeseries_data$data
+       }
+
+  })
+
 
   # Download handlers
   output$download_raster_daily <- shiny::downloadHandler(
@@ -130,10 +149,12 @@ mod_save <- function(
       return(file_name)
     },
     content = function(file) {
-      result_data <- main_data_reactives$timeseries_data$data
+
       readr::write_csv(
-        result_data, file = file
+        dataInput(), file = file
       )
+
+
     }
   )
 
