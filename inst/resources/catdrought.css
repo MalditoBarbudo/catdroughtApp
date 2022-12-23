@@ -171,3 +171,9 @@ div#shiny-notification-panel {
   color: #424242;
   font-style: italic;
 }
+
+#mod_tsOutput-explanation_no_divisions{
+  text-align: center;
+  color: #424242;
+  font-style: italic;
+}

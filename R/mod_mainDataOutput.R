@@ -248,27 +248,6 @@ mod_mainData <- function(
     leaflet_raster <- raster_daily[[var_daily]]
 
 
-    # ............ FILL ALPHA NEGATIVO ...............
-    # ................................................
-
-    #      .) En los casos que todos los valores son negativos
-    #      .) El graphico Dygraph queda rellenados al revés
-    #      .) Para evitar-lo creamos el valor ALPHA
-    #           .) Será 0.1 para valores POSITIVOS
-    #           .) Será 0   para valores NEGATIVOS (así NO rellenará el grafico)
-
-
-    val_raster <- round(raster::values(leaflet_raster), digits=4)
-    val_raster_noNA <- val_raster[!is.na(val_raster)]
-
-    max_value <- max(val_raster_noNA)
-    min_value <- min(val_raster_noNA)
-
-    alpha <- dplyr::if_else(
-      max_value < 0 & min_value < 0, 0, 0.1
-    )
-
-
     waiter_ts <- waiter::Waiter$new(
       id = 'overlay_div',
       html = shiny::tagList(
@@ -542,8 +521,7 @@ mod_mainData <- function(
         dygraphs::dyLegend(
           show = "follow", labelsSeparateLines = TRUE
         ) %>%
-        # dygraphs::dyOptions(fillGraph = TRUE, fillAlpha = 0.1 ) %>%
-        dygraphs::dyOptions(fillGraph = TRUE, fillAlpha = alpha ) %>%
+        dygraphs::dyOptions(fillGraph = TRUE, fillAlpha = 0.1 ) %>%
         dygraphs::dyEvent(date_selected, date_selected, labelLoc = "top")
 
         # dygraphs::dyOptions(

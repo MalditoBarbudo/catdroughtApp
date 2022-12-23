@@ -12,9 +12,8 @@ mod_tsOutput <- function(id) {
   # UI ####
   shiny::tagList(
     dygraphs::dygraphOutput(ns('timeseries_daily')),
-    shiny::uiOutput(
-      ns('divisions_container')
-    )
+    shiny::uiOutput(ns('divisions_container')),
+    shiny::uiOutput(ns('no_divisions_container'))
   )
 }
 
@@ -54,11 +53,11 @@ mod_ts <- function(
   })
 
 
-  # ......... OUTPUT / EXPLICACIÓN .........
+  # ....... EXPLICACIÓN SI DIVISION ........
   # ........................................
 
-  #      .) DIV que muestra explicacion sobre percentiles históricos
-  #      .) Solo se visualiza con las variables que tiene percentil
+  #      .) DIV que muestra explicacion
+  #      .) Solo se visualiza cuando activamos SI DIVISION (provicias, municipios,...)
 
   output$divisions_container <- shiny::renderUI({
 
@@ -78,6 +77,27 @@ mod_ts <- function(
       'eng' = 'en'
     )
 
+    # ------------   OBVSERVERS  -------------
+    # -------                        ---------
+    # ....... SHOW/HIDDEN EXPLICACION ........
+    # ........................................
+
+    #      .) Activar menú explicativo
+    #      .) SOLO cuando se haya activado DIVISION (Comarques, Provincies,...)
+
+    shiny::observe({
+      shiny::validate(
+        shiny::need(data_reactives$display_daily, 'no display')
+      )
+      display_daily <- data_reactives$display_daily
+      if (display_daily == 'none') {
+        shinyjs::hide('explanation_divisions')
+      } else {
+        shinyjs::show('explanation_divisions')
+      }
+    })
+
+
     shinyjs::hidden(
       shiny::div(
         id = ns('explanation_divisions'),
@@ -87,34 +107,60 @@ mod_ts <- function(
 
   })
 
-
-
-  # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  # ----------------------------    OBVSERVES    ---------------------------------
-  # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-  # ....... SHOW/HIDDEN EXPLICACION ........
+  # ....... EXPLICACIÓN NO DIVISION ........
   # ........................................
 
-  #      .) Activar menú explicativo
-  #      .) SOLO cuando se haya activado DIVISION (Comarques, Provincies,...)
+  #      .) DIV que muestra explicacion
+  #      .) Solo se visualiza cuando NO activamos DIVISION
 
+  output$no_divisions_container <- shiny::renderUI({
 
-  shiny::observe({
+    # ......... INICIALIZAR .............
+    # ...................................
 
-    shiny::validate(
-      shiny::need(data_reactives$var_daily, 'no variable')
+    #       .) NS = IDs únicos
+    #       .) LANG = F(x) definida en APP.R
+    #       .) DATES_LANG = Cambio de nomenclatura de lengua
+
+    ns <- session$ns
+    lang_declared <- lang()
+    dates_lang <- switch(
+      lang_declared,
+      'cat' = 'ca',
+      'spa' = 'es',
+      'eng' = 'en'
     )
-    display_daily <- data_reactives$display_daily
 
-    if (display_daily == 'none') {
-      shinyjs::hide('explanation_divisions')
-    } else {
-      shinyjs::show('explanation_divisions')
-    }
+
+    # ------------   OBVSERVERS  -------------
+    # -------                        ---------
+    # ....... SHOW/HIDDEN EXPLICACION ........
+    # ........................................
+
+    #      .) Activar menú explicativo
+    #      .) SOLO cuando se DESACTIVA DIVISIONES
+
+    shiny::observeEvent(
+      eventExpr = data_reactives$display_daily,
+      handlerExpr = {
+        display_daily <- data_reactives$display_daily
+        if (display_daily == 'none') {
+          shinyjs::show('explanation_no_divisions')
+        } else {
+          shinyjs::hide('explanation_no_divisions')
+        }
+      }
+    )
+
+
+    shiny::div(
+      id = ns('explanation_no_divisions'),
+      shiny::HTML(translate_app('expl_no_divisions', lang_declared))
+    )
 
 
   })
+
 
 
 

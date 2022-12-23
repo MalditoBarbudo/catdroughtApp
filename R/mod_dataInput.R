@@ -164,10 +164,6 @@ mod_data <- function(
           )
         )
       ), # end of Fluid Row
-
-
-
-
       shinyjs::hidden(
         shiny::div(
           id = ns('file_upload_panel'),
