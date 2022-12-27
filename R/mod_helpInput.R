@@ -58,7 +58,7 @@ help_data <- function(
     #           .) Var humedad Sol:  Theta, Psi, REW
     #           .) varclimáticas:   PET, Precipitation
     #           .) var sup.evapo:   Lai
-    #           .) var balance hídirco:  "Interception", "Infiltration", 'Runoff', 'DeepDrainage', 'Esoil', 'Eplant'
+    #           .) var balance hídirco:  Interception, Infiltration, Runoff, DeepDrainage, Esoil, Eplant
     #           .) var estres hídrico :  DDS, LMFC
 
 

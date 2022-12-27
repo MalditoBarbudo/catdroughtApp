@@ -35,6 +35,9 @@ mod_save <- function(
   ## renderUI ####
   output$save_container <- shiny::renderUI({
 
+    print(names(main_data_reactives$raster_selected_daily))
+    print(main_data_reactives$raster_selected_daily)
+
     ns <- session$ns
 
     lang_declared <- lang()
@@ -133,7 +136,7 @@ mod_save <- function(
 
       raster::writeRaster(
         result_data, filename = file,
-        format = 'GTiff', overwrite = TRUE
+        format = 'GTiff', overwrite = TRUE, # bylayer = TRUE # suffix = 'names',
       )
     }
   )
