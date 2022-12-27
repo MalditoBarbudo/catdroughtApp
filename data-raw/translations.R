@@ -193,24 +193,26 @@ tibble::tribble(
   # "LMFC","Contingut d’Humitat de Combustible Viu","Live Fuel Moisture Content","Contendio de Humedad de Combustible Vivo","Contingut d’aigua del combustible fi viu (fulles i branquillons), en relació al seu pes sec.","Water content of live fine fuel (leaves and twigs), in relation to their dry weight.","Contenido de agua del combustible fino vivo (hojas y ramitas), en relación a su peso seco.","(%)","(%)","(%)",
   #
   ~var_id, ~var_description_help_cat, ~var_description_help_eng, ~var_description_help_spa, ~var_units_cat, ~var_units_eng, ~var_units_spa,
-
+  #
+  "Theta","Contingut volumètric d’humitat al sòl, promitjat a partir de la humitat de diferents capes","Volumetric soil moisture, averaged across soil layers","Contenido volumètrico de humedad en el suelo, promediado a partir de la humedad en distintas capas","(m3/m3)","(m3/m3)","(m3/m3)",
+  "Psi","Potencial hídric a la capa més superficial del sòl (0-30 cm)","Water potential at the topmost soil layer (0-30 cm)","Potencial hídrico en la capa más superficial del suelo (0-30 cm)","(-MPa)","(-MPa)","(-MPa)",
   "REW","Percentatge d’aigua disponible al sòl, en relació al total d’aigua que pot ser extreta per les plantes.","Percentage of available water in the soil, in relation to the total water that can be extracted by plants.","Porcentaje de agua disponible en el suelo, en relación al total de agua que puede ser extraída por las plantas.","(%)","(%)","(%)",
-  "DDS","Índex d’estrés de la vegetació, que mesura el grau de tancament dels estomes de les plantes al bosc.","Vegetation stress index, which measures the degree of stomata closure of plants in the forest.","Índice de estrés de la vegetación, que mide el grado de cierre de los estomas de las plantas en el bosque.","(%)","(%)","(%)",
+  #
   "PET","Demanda evaporativa potencial de l’atmosfera, mesurada mitjançant l’index d’evapo-transpiració potencial de Penman.","Potential evaporative demand of the atmosphere, measured by Penman's potential evapotranspiration index.","Demanda evaporativa potencial de la atmósfera, medida mediante el índice de evapo-transpiración potencial de Penman.","(mm/dia)","(mm/day)","(mm/día)",
   "Precipitation","Precipitació diària, en forma de pluja o neu.","Daily precipitation, in the form of rain or snow.","Precipitación diaria, en forma de lluvia o nieve.","(mm/dia)","(mm/day)","(mm/día)",
+  #
+  "LAI","Índex d’àrea foliar","Leaf area index","Índice de area foliar","(m2/m2)","(m2/m2)","(m2/m2)",
+  #
+  "Interception","Pluja interceptada per la superfície de les plantes i evaporada des de les mateixes ","Rainfall intercepted by plant surfaces and evaporated from there","Lluvia interceptada por la superfície de las plantas y evaporada des de las mismas","(mm/dia)","(mm/day)","(mm/día)",
+  "Infiltration","Aigua infiltrada a la primera capa del sòl","Water infiltrating into the topsoil","Agua infiltrada a la primera capa del suelo","(mm/dia)","(mm/day)","(mm/día)",
+  "Runoff","Aigua que no s’infiltra al sòl sinó que genera escolament superficial","Water not infiltrating into the soil, generating surface runoff","Agua no infiltrada en el suelo, sinó que genera escorrentía superficial","(mm/dia)","(mm/day)","(mm/día)",
+  "DeepDrainage","Aigua que percola cap al freàtic, més enllà de l’abast de les arrels de les plantes","Water percolating towards the water table, beyond the reach of plant roots","Agua que percola hacia el freático, más allà del alcance de las raíces de plantas","(mm/dia)","(mm/day)","(mm/día)",
+  "Esoil","Aigua evaporada des de la superfície del sòl","Water evaporated from soil surface","Agua evaporada desde la superfície del suelo","(mm/dia)","(mm/day)","(mm/día)",
+  "Eplant","Aigua transpirada per les plantes","Water transpirated by plants","Agua transpirada por las plantas","(mm/dia)","(mm/day)","(mm/día)",
+  #
+  "DDS","Índex d’estrés de la vegetació, que mesura el grau de tancament dels estomes de les plantes al bosc.","Vegetation stress index, which measures the degree of stomata closure of plants in the forest.","Índice de estrés de la vegetación, que mide el grado de cierre de los estomas de las plantas en el bosque.","(%)","(%)","(%)",
   "LMFC","Contingut d’aigua del combustible fi viu (fulles i branquillons), en relació al seu pes sec.","Water content of live fine fuel (leaves and twigs), in relation to their dry weight.","Contenido de agua del combustible fino vivo (hojas y ramitas), en relación a su peso seco.","(%)","(%)","(%)",
-  "Theta","","","","(m3/m3)","(m3/m3)","(m3/m3)",
-  "Psi","","","","(-MPa)","(-MPa)","(-MPa)",
-  "LAI","","","","(m2/m2)","(m2/m2)","(m2/m2)",
-  "Interception","","","","(mm/dia)","(mm/day)",	"(mm/día)",
-  "Infiltration","","","","(mm/dia)","(mm/day)","(mm/día)",
-  "Runoff","","","","(mm/dia)","(mm/day)","(mm/día)",
-  "DeepDrainage","","","","(mm/dia)","(mm/day)","(mm/día)",
-  "Esoil","","","","(mm/dia)","(mm/day)","(mm/día)",
-  "Eplant","","","","(mm/dia)","(mm/day)","(mm/día)",
-
-
-
+  #
 ) %>%
   {.} -> catdrought_var_thes
 
