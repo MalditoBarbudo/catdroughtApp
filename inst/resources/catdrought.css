@@ -177,3 +177,8 @@ div#shiny-notification-panel {
   color: #424242;
   font-style: italic;
 }
+
+#help_data-help_variables {  /* SHORT VARIABLES - Tab Help*/
+  text-align: center;
+
+}

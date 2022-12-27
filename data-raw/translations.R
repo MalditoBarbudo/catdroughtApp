@@ -118,7 +118,12 @@ tibble::tribble(
   "raster_download",'Ràster de les 14 variables per dia seleccionat (CRS = WGS84) </br>Resolució Ràster (nrow = 282, ncol = 288, nlayers = 14)','Raster of the 14 variables per selected day (CRS = WGS84) </br>Raster resolution (nrow = 282, ncol = 288, nlayers = 14).','Ráster de las 14 variables por día seleccionado (CRS = WGS84) </br>Resolución Ráster (nrow = 282, ncol = 288, nlayers = 14)',
   "csv_download","CSV [No Divisió] = Serie anual de la variable pel píxel seleccionat </br> CSV [Divisió Seleccionada] = Serie anual d'estadístics de la variable per la divisió seleccionada","CSV [No Division] = Annual series of the variable by the selected pixel </br> CSV [Selected Division] = Annual series of the variable statistics by the selected division","CSV [No División] = Serie anual de la variable por el píxel seleccionado </br> CSV [División Seleccionada] = Serie anual de estadísticos de la variable por la división seleccionada",
 
+  # .......... HELP TAB ..........
+  # ..............................
 
+  'help_translation','Ajuda','Help','Ayuda',
+  'help_description','Descripció : ','Description : ','Descripción : ',
+  'units_description','Unitats : ','Units : ','Unidades : ',
 
   # "sidebar_h4_title", "Controls", 'Controls', "Controles",
   # "lidar_val_sel_label", "Seleccioneu la variable que voleu visualitzar", "Select the variable to visualize", "Selecciona la variable a visualizar",
@@ -178,4 +183,34 @@ tibble::tribble(
 ) %>%
   {.} -> app_translations
 
-# usethis::use_data(app_translations, internal = TRUE, overwrite = TRUE)
+tibble::tribble(
+  # ~var_id, ~var_description_cat, ~var_description_eng, ~var_description_spa, ~var_description_help_cat, ~var_description_help_eng, ~var_description_help_spa, ~var_units_cat, ~var_units_eng, ~var_units_spa,
+  #
+  # "REW","Aigua disponible sòl","Available soil water","Agua disponible suelo","Percentatge d’aigua disponible al sòl, en relació al total d’aigua que pot ser extreta per les plantes.","Percentage of available water in the soil, in relation to the total water that can be extracted by plants.","Porcentaje de agua disponible en el suelo, en relación al total de agua que puede ser extraída por las plantas.","(%)","(%)","(%)",
+  # "DDS","Estrés de la vegetació","Vegetation Stress","Estrés de la vegetación","Índex d’estrés de la vegetació, que mesura el grau de tancament dels estomes de les plantes al bosc.","Vegetation stress index, which measures the degree of stomata closure of plants in the forest.","Índice de estrés de la vegetación, que mide el grado de cierre de los estomas de las plantas en el bosque.","(%)","(%)","(%)",
+  # "PET","Evapo-transpiració potencial","Potential evapo-transpiration","Evap-transpiración potencial","Demanda evaporativa potencial de l’atmosfera, mesurada mitjançant l’index d’evapo-transpiració potencial de Penman.","Potential evaporative demand of the atmosphere, measured by Penman's potential evapotranspiration index.","Demanda evaporativa potencial de la atmósfera, medida mediante el índice de evapo-transpiración potencial de Penman.","(mm/dia)","(mm/day)","(mm/día)",
+  # "Precipitation","Precipitació","Precipitation","Precipitación","Precipitació diària, en forma de pluja o neu.","Daily precipitation, in the form of rain or snow.","Precipitación diaria, en forma de lluvia o nieve.","(mm/dia)","(mm/day)","(mm/día)",
+  # "LMFC","Contingut d’Humitat de Combustible Viu","Live Fuel Moisture Content","Contendio de Humedad de Combustible Vivo","Contingut d’aigua del combustible fi viu (fulles i branquillons), en relació al seu pes sec.","Water content of live fine fuel (leaves and twigs), in relation to their dry weight.","Contenido de agua del combustible fino vivo (hojas y ramitas), en relación a su peso seco.","(%)","(%)","(%)",
+  #
+  ~var_id, ~var_description_help_cat, ~var_description_help_eng, ~var_description_help_spa, ~var_units_cat, ~var_units_eng, ~var_units_spa,
+
+  "REW","Percentatge d’aigua disponible al sòl, en relació al total d’aigua que pot ser extreta per les plantes.","Percentage of available water in the soil, in relation to the total water that can be extracted by plants.","Porcentaje de agua disponible en el suelo, en relación al total de agua que puede ser extraída por las plantas.","(%)","(%)","(%)",
+  "DDS","Índex d’estrés de la vegetació, que mesura el grau de tancament dels estomes de les plantes al bosc.","Vegetation stress index, which measures the degree of stomata closure of plants in the forest.","Índice de estrés de la vegetación, que mide el grado de cierre de los estomas de las plantas en el bosque.","(%)","(%)","(%)",
+  "PET","Demanda evaporativa potencial de l’atmosfera, mesurada mitjançant l’index d’evapo-transpiració potencial de Penman.","Potential evaporative demand of the atmosphere, measured by Penman's potential evapotranspiration index.","Demanda evaporativa potencial de la atmósfera, medida mediante el índice de evapo-transpiración potencial de Penman.","(mm/dia)","(mm/day)","(mm/día)",
+  "Precipitation","Precipitació diària, en forma de pluja o neu.","Daily precipitation, in the form of rain or snow.","Precipitación diaria, en forma de lluvia o nieve.","(mm/dia)","(mm/day)","(mm/día)",
+  "LMFC","Contingut d’aigua del combustible fi viu (fulles i branquillons), en relació al seu pes sec.","Water content of live fine fuel (leaves and twigs), in relation to their dry weight.","Contenido de agua del combustible fino vivo (hojas y ramitas), en relación a su peso seco.","(%)","(%)","(%)",
+  "Theta","","","","(m3/m3)","(m3/m3)","(m3/m3)",
+  "Psi","","","","(-MPa)","(-MPa)","(-MPa)",
+  "LAI","","","","(m2/m2)","(m2/m2)","(m2/m2)",
+  "Interception","","","","(mm/dia)","(mm/day)",	"(mm/día)",
+  "Infiltration","","","","(mm/dia)","(mm/day)","(mm/día)",
+  "Runoff","","","","(mm/dia)","(mm/day)","(mm/día)",
+  "DeepDrainage","","","","(mm/dia)","(mm/day)","(mm/día)",
+  "Esoil","","","","(mm/dia)","(mm/day)","(mm/día)",
+  "Eplant","","","","(mm/dia)","(mm/day)","(mm/día)",
+
+
+
+) %>%
+  {.} -> catdrought_var_thes
+

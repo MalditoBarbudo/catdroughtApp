@@ -83,7 +83,7 @@ mod_data <- function(
     # climate: PET
     # evaporative surface: LAI
     # water balance: Infiltration, RunOff, DeepDrainage, Esoil, Eplant
-    # drought stress: DDS
+    # drought stress: DDS, LMFC
     soil_moisture_vars <- c("Theta", "Psi", "REW") %>%
       magrittr::set_names(translate_app(., lang_declared))
     climate_vars <- c("PET", "Precipitation") %>%

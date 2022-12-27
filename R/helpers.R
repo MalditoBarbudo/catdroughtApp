@@ -45,3 +45,37 @@ translate_app <- function(id, lang) {
         }
     )
 }
+
+# ...... FUNCION TRANSLATE THESUAURUS .......
+# ...........................................
+
+#       .) Función que traducirá
+#       .) ARGUMENTOS.
+#                .) LANG = Lengua per definida en menu del NAV
+#                .) ID = código que usarà el DICCIONARIO para saber QUE TRADUCIR
+#                .) TYPE = description o units
+
+
+translate_thesaurus_app <- function(id, lang, type) {
+  id %>%
+    purrr::map_chr(
+      ~ catdrought_var_thes %>%
+        dplyr::filter(var_id == .x ) %>% {
+          data_filtered <- .
+
+          if (nrow(data_filtered) < 1) {
+            .x
+          } else {
+
+            switch (type,
+                    'description' = text <- dplyr::pull(data_filtered, !! rlang::sym(glue::glue("var_description_help_{lang}"))),
+                    'units' = text <- dplyr::pull(data_filtered, !! rlang::sym(glue::glue("var_units_{lang}")))
+            )
+
+            Encoding(text) <- "UTF-8"
+            text
+
+          }
+        }
+    )
+}
