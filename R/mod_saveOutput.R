@@ -35,9 +35,6 @@ mod_save <- function(
   ## renderUI ####
   output$save_container <- shiny::renderUI({
 
-    print(names(main_data_reactives$raster_selected_daily))
-    print(main_data_reactives$raster_selected_daily)
-
     ns <- session$ns
 
     lang_declared <- lang()
@@ -131,13 +128,29 @@ mod_save <- function(
     },
     content = function(file) {
 
-      # data length
-      result_data <- main_data_reactives$raster_selected_daily
+      # .......  Nombre Layers RASTER ......
+      # ....................................
 
-      raster::writeRaster(
-        result_data, filename = file,
-        format = 'GTiff', overwrite = TRUE, # bylayer = TRUE # suffix = 'names',
-      )
+      #      .) Para dar el nombre de las variables a cada capa RASTER
+
+      #      .) Necesitaremos
+      #           .) datos raster = RESUTL_DATA
+      #           .) nombres de variables = VARIABLE
+      #           .) longitud del vector variables = LONG
+
+      result_data <- main_data_reactives$raster_selected_daily
+      variables <- names(result_data)
+      long <- length(variables)
+
+      #      .) Usaremos
+      #           .) terra::RAST  = Crear ráster
+      #           .) NAMES()      = Asigna nombres variables a capas del ráster
+      #           .) terra::TERRA_WRITERASTER = Escribe el ráster
+
+      raster <- terra::rast(result_data)[[1:long]]
+      names(raster) <- variables
+      terra::writeRaster(raster, filename = file, overwrite=TRUE)
+
     }
   )
 

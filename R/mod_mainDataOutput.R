@@ -90,6 +90,7 @@ mod_mainData <- function(
 
     # raster_res
     raster_res <- catdroughtdb$get_raster(date_sel, 'raster')
+
     return(raster_res)
   })
 
