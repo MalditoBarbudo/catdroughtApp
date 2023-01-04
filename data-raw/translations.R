@@ -110,12 +110,12 @@ tibble::tribble(
   # ..............................
 
   'expl_divisions',"Mitjana de la variable (línea verda) obtinguda a la divisió seleccionada i representació de la (+/-) desviació estàndard (àrea sombrejada de color verd clar)","Mean of the variable (green line) obtained in the selected division and representation of the (+/-) standard deviation (light green shaded area).","Media de la variable (línea verde) obtenida en la división seleccionada y representación de la (+/-) desviación estándar (área sombreada de color verde claro)",
-  'expl_no_divisions',"Mitjana de la variable (línea verda) obtinguda del píxel seleccionat","Mean of the variable (green line) obtained from the selected pixel","Media de la variable (línea verde) obtenida del píxel seleccionado",
+  'expl_no_divisions',"Sèrie temporal de la variable (línea verda) obtinguda del píxel seleccionat","Time series of the variable (green line) obtained from the selected pixel","Serie temporal de la variable (línea verde) obtenida del píxel seleccionado",
 
   # ........ SAVE Options ........
   # ..............................
 
-  "raster_download",'Ràster de les 14 variables per dia seleccionat (CRS = WGS84) </br>Resolució Ràster (nrow = 282, ncol = 288, nlayers = 14)','Raster of the 14 variables per selected day (CRS = WGS84) </br>Raster resolution (nrow = 282, ncol = 288, nlayers = 14).','Ráster de las 14 variables por día seleccionado (CRS = WGS84) </br>Resolución Ráster (nrow = 282, ncol = 288, nlayers = 14)',
+  "raster_download",'Ràster de les 14 variables per dia seleccionat','Raster of the 14 variables by selected day','Ráster de las 14 variables por día seleccionado',
   "csv_download","CSV [No Divisió] = Serie anual de la variable pel píxel seleccionat </br> CSV [Divisió Seleccionada] = Serie anual d'estadístics de la variable per la divisió seleccionada","CSV [No Division] = Annual series of the variable by the selected pixel </br> CSV [Selected Division] = Annual series of the variable statistics by the selected division","CSV [No División] = Serie anual de la variable por el píxel seleccionado </br> CSV [División Seleccionada] = Serie anual de estadísticos de la variable por la división seleccionada",
 
   # .......... HELP TAB ..........

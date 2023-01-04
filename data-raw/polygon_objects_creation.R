@@ -1,44 +1,24 @@
 # polygons and nfi plots objects
 
-## polygons ####
-# municipalities_polygons <- sf::read_sf('data-raw/shapefiles/bm5mv20sh0tpm1_20180101_0.shp') %>%
-#   rmapshaper::ms_simplify(0.01) %>%
-#   sf::st_transform(4326) %>%
-#   dplyr::select(poly_id = NOMMUNI, geometry)
-#
-# counties_polygons <- sf::read_sf('data-raw/shapefiles/bm5mv20sh0tpc1_20180101_0.shp') %>%
-#   rmapshaper::ms_simplify(0.01) %>%
-#   sf::st_transform(4326) %>%
-#   dplyr::select(poly_id = NOMCOMAR, geometry)
-#
-# watersheds_polygons <- sf::read_sf('data-raw/shapefiles/Concajs.shp') %>%
-#   # rmapshaper::ms_simplify(0.01) %>%
-#   sf::st_transform(4326) %>%
-#   dplyr::select(poly_id = CONCA, geometry) %>%
-#   sf::st_cast('MULTIPOLYGON') %>%
-#   dplyr::group_by(poly_id) %>%
-#   dplyr::summarise(dplyr::across(.fns = sf::st_combine))
-
-
-
-# ............... SHAPES PROVES ...............
-# .............................................
-
-
-municipalities_polygons <- sf::read_sf('data-raw/shapefiles/provincies.shp') %>%
-rmapshaper::ms_simplify(0.01) %>%
+# polygons ####
+municipalities_polygons <- sf::read_sf('data-raw/shapefiles/bm5mv20sh0tpm1_20180101_0.shp') %>%
+  rmapshaper::ms_simplify(0.01) %>%
   sf::st_transform(4326) %>%
   dplyr::select(poly_id = NOMMUNI, geometry)
 
-counties_polygons <- sf::read_sf('data-raw/shapefiles/comarques.shp') %>%
-rmapshaper::ms_simplify(0.01) %>%
+counties_polygons <- sf::read_sf('data-raw/shapefiles/bm5mv20sh0tpc1_20180101_0.shp') %>%
+  rmapshaper::ms_simplify(0.01) %>%
   sf::st_transform(4326) %>%
   dplyr::select(poly_id = NOMCOMAR, geometry)
 
-watersheds_polygons <- sf::read_sf('data-raw/shapefiles/vegueries.shp') %>%
-rmapshaper::ms_simplify(0.01) %>%
+watersheds_polygons <- sf::read_sf('data-raw/shapefiles/Concajs.shp') %>%
+  # rmapshaper::ms_simplify(0.01) %>%
   sf::st_transform(4326) %>%
-  dplyr::select(poly_id = CONCA, geometry)
+  dplyr::select(poly_id = CONCA, geometry) %>%
+  sf::st_cast('MULTIPOLYGON') %>%
+  dplyr::group_by(poly_id) %>%
+  dplyr::summarise(dplyr::across(.fns = sf::st_combine))
+
 
 # .............................................
 # .............................................
