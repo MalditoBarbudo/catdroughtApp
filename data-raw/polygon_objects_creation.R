@@ -1,6 +1,6 @@
 # polygons and nfi plots objects
 
-## polygons ####
+# polygons ####
 municipalities_polygons <- sf::read_sf('data-raw/shapefiles/bm5mv20sh0tpm1_20180101_0.shp') %>%
   rmapshaper::ms_simplify(0.01) %>%
   sf::st_transform(4326) %>%
@@ -18,6 +18,13 @@ watersheds_polygons <- sf::read_sf('data-raw/shapefiles/Concajs.shp') %>%
   sf::st_cast('MULTIPOLYGON') %>%
   dplyr::group_by(poly_id) %>%
   dplyr::summarise(dplyr::across(.fns = sf::st_combine))
+
+
+# .............................................
+# .............................................
+
+
+
 
 ## nfi plots ####
 nfidb <- lfcdata::nfi()

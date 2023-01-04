@@ -90,6 +90,7 @@ mod_mainData <- function(
 
     # raster_res
     raster_res <- catdroughtdb$get_raster(date_sel, 'raster')
+
     return(raster_res)
   })
 
@@ -242,6 +243,11 @@ mod_mainData <- function(
       # shiny::need(data_reactives$display_daily, 'No display selected')
     )
 
+    date_selected <- data_reactives$date_daily
+    raster_daily <- main_data_reactives$raster_selected_daily
+    var_daily <- data_reactives$var_daily
+    leaflet_raster <- raster_daily[[var_daily]]
+
 
     waiter_ts <- waiter::Waiter$new(
       id = 'overlay_div',
@@ -310,7 +316,8 @@ mod_mainData <- function(
             # drawGrid = FALSE,
             axisLineColor = '#647a8d', axisLabelColor = '#647a8d',
             includeZero = TRUE, gridLineColor = '#647a8d'
-          )
+          ) %>%
+          dygraphs::dyEvent(date_selected, date_selected, labelLoc = "top")
       } else {
         if (display_daily == 'file') {
           # file
@@ -365,6 +372,7 @@ mod_mainData <- function(
               dygraphs::dyLegend(
                 show = "follow", labelsSeparateLines = TRUE
               ) %>%
+              dygraphs::dyEvent(date_selected, date_selected, labelLoc = "top") %>%
               dygraphs::dyOptions(
                 axisLineWidth = 1.5,
                 # drawGrid = FALSE,
@@ -416,7 +424,8 @@ mod_mainData <- function(
                 # drawGrid = FALSE,
                 axisLineColor = '#647a8d', axisLabelColor = '#647a8d',
                 includeZero = TRUE, gridLineColor = '#647a8d'
-              )
+              ) %>%
+              dygraphs::dyEvent(date_selected, date_selected, labelLoc = "top")
           }
         } else {
           # shapes
@@ -468,11 +477,13 @@ mod_mainData <- function(
               axisLineColor = '#647a8d', axisLabelColor = '#647a8d',
               includeZero = TRUE, gridLineColor = '#647a8d'
             ) %>%
+
             dygraphs::dySeries(
               c('low_es', var_daily, 'high_es'),
               label = map_reactives$map_daily_shape_click$id,
               color = '#448714', strokeWidth = 2
-            )
+            ) %>%
+            dygraphs::dyEvent(date_selected, date_selected, labelLoc = "top")
         }
       }
     } else {
@@ -511,12 +522,15 @@ mod_mainData <- function(
         dygraphs::dyLegend(
           show = "follow", labelsSeparateLines = TRUE
         ) %>%
-        dygraphs::dyOptions(
-          axisLineWidth = 1.5,
-          # drawGrid = FALSE,
-          axisLineColor = '#647a8d', axisLabelColor = '#647a8d',
-          includeZero = TRUE, gridLineColor = '#647a8d'
-        )
+        dygraphs::dyOptions(fillGraph = TRUE, fillAlpha = 0.1 ) %>%
+        dygraphs::dyEvent(date_selected, date_selected, labelLoc = "top")
+
+        # dygraphs::dyOptions(
+        #   axisLineWidth = 1.5,
+        #   # drawGrid = FALSE,
+        #   axisLineColor = '#647a8d', axisLabelColor = '#647a8d',
+        #   includeZero = TRUE, gridLineColor = '#647a8d'
+        # )
     }
 
     res <- list(

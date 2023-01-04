@@ -37,26 +37,82 @@ mod_save <- function(
 
     ns <- session$ns
 
+    lang_declared <- lang()
+    dates_lang <- switch(
+      lang_declared,
+      'cat' = 'ca',
+      'spa' = 'es',
+      'eng' = 'en'
+    )
+
     shiny::tagList(
       shiny::fluidRow(
-        shiny::column(
-          6, align = 'center',
-          # download button
-          shiny::downloadButton(
-            ns('download_raster_daily'),
-            translate_app('download_raster_label', lang())
+        shiny::column(12,
+          shiny::fluidRow(shiny::HTML(translate_app("raster_download", lang_declared)), style = "text-align: center; padding: 15px;"),
+            shiny::br(),
+            shiny::fluidRow(align = 'center',
+                # download button
+                shiny::downloadButton(
+                  ns('download_raster_daily'),
+                  translate_app('download_raster_label', lang())
+                )
+             )
+          ),
+          shiny::br(),
+          shiny::column(12,
+            shiny::fluidRow(shiny::HTML(translate_app("csv_download", lang_declared)), style = "text-align: center; padding: 15px;"),
+            shiny::br(),
+            shiny::fluidRow(align = 'center',
+                shiny::downloadButton(
+                  ns('download_series_daily'),
+                  translate_app('download_series_label', lang())
+                )
+            )
           )
-        ),
-        shiny::column(
-          6, align = 'center',
-          shiny::downloadButton(
-            ns('download_series_daily'),
-            translate_app('download_series_label', lang())
-          )
-        )
-      )
-    )
+
+      ) # end Fluid Row
+    ) # end TAGLIST
+
+  }) # END Render UI
+
+
+  # ................  funcion DATAINPUT ...............
+  # ...................................................
+
+  #      .) Función OBTIENE DATOS para el CSV
+  #      .) La usaré en el readr::write_csv
+  #      .) CONDICION
+  #               .) SIN DIVISIONES -> NONE
+  #               .) CON DIVISIONES -> !NONE
+
+  #      .) SIN DIVISIONES
+  #               .) Obtengo la geometría
+  #               .) Obtengo los datos
+  #                    .) Los datos creo columna LON LAT
+  #                    .) Elimino POINT ID, que no aporta nada
+
+  #      .) CON DIVISIONES (comaracs, municipios,..)
+  #               .) Obtengo datos
+
+  dataInput <- reactive({
+
+       display_daily <- data_reactives$display_daily
+
+       if (display_daily == 'none') {
+
+         result_geom <- main_data_reactives$timeseries_data$sf$geometry
+         result_data <- main_data_reactives$timeseries_data$data %>%
+                          dplyr::mutate(
+                            lon_WGS84 = sf::st_coordinates(result_geom)[,1],
+                            lat_WGS84 = sf::st_coordinates(result_geom)[,2]
+                           ) %>% dplyr::select(-point_id)
+
+       } else {
+         result_data <- main_data_reactives$timeseries_data$data
+       }
+
   })
+
 
   # Download handlers
   output$download_raster_daily <- shiny::downloadHandler(
@@ -72,13 +128,29 @@ mod_save <- function(
     },
     content = function(file) {
 
-      # data length
-      result_data <- main_data_reactives$raster_selected_daily
+      # .......  Nombre Layers RASTER ......
+      # ....................................
 
-      raster::writeRaster(
-        result_data, filename = file,
-        format = 'GTiff', overwrite = TRUE
-      )
+      #      .) Para dar el nombre de las variables a cada capa RASTER
+
+      #      .) Necesitaremos
+      #           .) datos raster = RESUTL_DATA
+      #           .) nombres de variables = VARIABLE
+      #           .) longitud del vector variables = LONG
+
+      result_data <- main_data_reactives$raster_selected_daily
+      variables <- names(result_data)
+      long <- length(variables)
+
+      #      .) Usaremos
+      #           .) terra::RAST  = Crear ráster
+      #           .) NAMES()      = Asigna nombres variables a capas del ráster
+      #           .) terra::TERRA_WRITERASTER = Escribe el ráster
+
+      raster <- terra::rast(result_data)[[1:long]]
+      names(raster) <- variables
+      terra::writeRaster(raster, filename = file, overwrite=TRUE)
+
     }
   )
 
@@ -93,10 +165,12 @@ mod_save <- function(
       return(file_name)
     },
     content = function(file) {
-      result_data <- main_data_reactives$timeseries_data$data
+
       readr::write_csv(
-        result_data, file = file
+        dataInput(), file = file
       )
+
+
     }
   )
 

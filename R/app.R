@@ -104,6 +104,13 @@ $(document).on('shiny:disconnected', function(event) {
                 title = mod_tab_translateOutput('save_translation'),
                 value = 'save_panel',
                 mod_saveOutput('mod_saveOutput')
+              ),
+              # help panel
+              shiny::tabPanel(
+                # title = mod_tab_translateOutput('help_translation'),
+                title = mod_tab_translateOutput('help_translation'),
+                value = 'help_panel',
+                mod_helpInput('help_data')
               )
             )
           ), # end of sidebarPanel
@@ -180,6 +187,12 @@ $(document).on('shiny:disconnected', function(event) {
       data_reactives, map_reactives,
       catdroughtdb, lang
     )
+    # help_input
+    help_reactives <- shiny::callModule(
+      help_data ,'help_data', catDroughtdb,
+      lang,  main_data_reactives
+
+    )
     # ts
     timseries_reactives <- shiny::callModule(
       mod_ts, 'mod_tsOutput',
@@ -222,6 +235,10 @@ $(document).on('shiny:disconnected', function(event) {
     shiny::callModule(
       mod_tab_translate, 'tech_specs_translation',
       'tech_specs_translation', lang
+    )
+    shiny::callModule(
+      mod_tab_translate, 'help_translation',
+      'help_translation', lang
     )
 
 

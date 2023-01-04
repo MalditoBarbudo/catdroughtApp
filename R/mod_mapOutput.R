@@ -43,41 +43,109 @@ mod_map <- function(
       data_reactives$var_daily
     )
 
-    # shiny::validate(
-    #   shiny::need(main_data_reactives$raster_selected_daily, 'no raster yet'),
-    #   shiny::need(data_reactives$var_daily, 'no var yet')
-    # )
-
+    leyenda_modif <- data_reactives$legend_modify_reactive
+    legend_check <- data_reactives$legend_check
     raster_daily <- main_data_reactives$raster_selected_daily
     var_daily <- data_reactives$var_daily
-
     leaflet_raster <- raster_daily[[var_daily]]
 
-    palette <- leaflet::colorNumeric(
-      palette = palettes_dictionary[[var_daily]][['pal']],
-      # domain = c(
-      #   palettes_dictionary[[var_daily]][['min']],
-      #   palettes_dictionary[[var_daily]][['max']]
-      # ),
-      domain = raster::values(leaflet_raster),
-      na.color = 'transparent',
-      reverse = palettes_dictionary[[var_daily]][['rev']]
+    # ..... PALETA DESCARTAR MAXIMOS / MINIMOS .......
+    # ................................................
+
+    #      .) Creo rampa color Discriminando Máximo y Mínimo
+    #      .) La rampa de color se divide en 5 partes
+    #      .) La modifico para poder discriminar máximos y mínimos
+
+    #      .) Distribución estandard
+    #           .) Cada rango tien el 20 % de los valors
+    #           .) Cada rango tiene el valor de 40
+    #           .) El total es 200 ( 40 -  40 - 40 - 40 - 40)
+    #           .) Los colores son ( Azul    .....  Amarillo)
+
+    #      .) Distribución Discriminar Máximos
+    #           .) Hacemos mas grandes los RANGOS AMARILLOS (85 cada uno)
+    #           .) Hacemos mas pequeños los RANGOS AZULES (10 cada uno)
+
+    #      .) Distribución Discriminar Mínimos
+    #           .) Hacemos mas pequeños los RANGOS AMARILLOS (10 cada uno)
+    #           .) Hacemos mas grandes los RANGOS AZULES (85 cada uno)
+
+    ra <- colorRampPalette(colors = c('#111689','#501ea2'), space = "Lab")(85)   # azul
+    rb <- colorRampPalette(colors = c('#501ea2','#9024a4'), space = "Lab")(85)
+    rc <- colorRampPalette(colors = c('#9024a4','#cf4c73'), space = "Lab")(10)
+    rd <- colorRampPalette(colors = c('#cf4c73','#fba337'), space = "Lab")(10)
+    re <- colorRampPalette(colors = c('#fba337','#f1f425'), space = "Lab")(10)   # amarillo
+
+    palette_a <- c(ra,rb,rc,rd,re)
+
+    ra2 <- colorRampPalette(colors = c('#111689','#501ea2'), space = "Lab")(10)   # azul
+    rb2 <- colorRampPalette(colors = c('#501ea2','#9024a4'), space = "Lab")(10)
+    rc2 <- colorRampPalette(colors = c('#9024a4','#cf4c73'), space = "Lab")(10)
+    rd2 <- colorRampPalette(colors = c('#cf4c73','#fba337'), space = "Lab")(85)
+    re2 <- colorRampPalette(colors = c('#fba337','#f1f425'), space = "Lab")(85)   # amarillo
+
+    palette_b <- c(ra2,rb2,rc2,rd2,re2)
+
+
+    # ........ SELECT TIPO PALETA LEGENDA  .........
+    # ..............................................
+
+    #      .) En función del BOTON de LEYENDA SELECCIONADO (Estandard, Descartar maximos...)
+    #      .) Seleccionaremos uno o otro tipo de visualización de la leyenda
+
+
+    switch (leyenda_modif,
+            "estandard" = palete_value <- palettes_dictionary[[var_daily]][['pal']],
+            "tip_1"     = palete_value <- palette_b,
+            "tip_2"     = palete_value <- palette_a
     )
 
-    # legend palette
-    legend_palette <- leaflet::colorNumeric(
-      palette = palettes_dictionary[[var_daily]][['pal']],
-      # domain = c(
-      #   palettes_dictionary[[var_daily]][['min']],
-      #   palettes_dictionary[[var_daily]][['max']]
-      # ),
-      domain = raster::values(leaflet_raster),
-      na.color = 'transparent',
-      reverse = !palettes_dictionary[[var_daily]][['rev']]
-    )
+    # ......... INVERTIR PALETA LEGENDA  ...........
+    # ..............................................
+
+    #      .) Si el Legend_Check es TRUE
+    #      .) Invertimos el color de la leyenda/ color de los valores
+
+    if(legend_check) {
+
+        palette <- leaflet::colorNumeric(
+          palette = palete_value,
+          domain = raster::values(leaflet_raster),
+          na.color = 'transparent',
+          reverse = FALSE
+        )
+
+        legend_palette <- leaflet::colorNumeric(
+          palette = palete_value,
+          domain = raster::values(leaflet_raster),
+          na.color = 'transparent',
+          reverse = TRUE
+        )
+
+    } else {
+
+      palette <- leaflet::colorNumeric(
+        palette = palete_value,
+        domain = raster::values(leaflet_raster),
+        na.color = 'transparent',
+        reverse = TRUE
+      )
+
+      legend_palette <- leaflet::colorNumeric(
+        palette = palete_value,
+        domain = raster::values(leaflet_raster),
+        na.color = 'transparent',
+        reverse = FALSE
+      )
+    }
+
+    # .............................................
+    # .............................................
 
     leaflet::leaflet() %>%
       leaflet::setView(1.744, 41.726, zoom = 8) %>%
+      leaflet.extras::addResetMapButton() %>%
+      leaflet::addTiles(group = "OSM") %>%
       leaflet::addProviderTiles(
         leaflet::providers$Esri.WorldShadedRelief,
         group = translate_app('Relief', lang())
@@ -87,7 +155,7 @@ mod_map <- function(
         group = translate_app('Imagery', lang())
       ) %>%
       leaflet::addLayersControl(
-        baseGroups = c(translate_app('Relief', lang()), translate_app('Imagery', lang())),
+        baseGroups = c(translate_app('Relief', lang()), translate_app('Imagery', lang()), translate_app('OSM', lang())),
         overlayGroups = c('raster'),
         options = leaflet::layersControlOptions(collapsed = FALSE, autoZIndex = FALSE)
       ) %>%
@@ -116,6 +184,10 @@ mod_map <- function(
 
     display_daily <- data_reactives$display_daily
     var_daily <- data_reactives$var_daily
+
+    legend_check <- data_reactives$legend_check
+    legend_modify <- data_reactives$legend_modify_reactive
+
 
     if (display_daily == 'none') {
       leaflet::leafletProxy('map_daily') %>%

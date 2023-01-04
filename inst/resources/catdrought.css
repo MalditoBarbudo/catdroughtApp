@@ -90,8 +90,11 @@ dygraph-axis-label.dygraph-axis-label-y {
 }
 
 .dygraph-legend {
-  color: #c8cac8;
-  background-color: #647a8d !important;
+  /*color: #c8cac8;
+  background-color: #647a8d !important;*/
+  color: #424242;
+  background-color: #d9dadb !important;
+  border: 1px solid grey;
   border-radius: 5px;
   padding: 5px;
 }
@@ -160,4 +163,22 @@ div#shiny-notification-panel {
 /* datepicker z-index */
 .datepicker{
   z-index: 9999 !important;
+}
+
+/* Time Serie Explanation Div */
+#mod_tsOutput-explanation_divisions{
+  text-align: center;
+  color: #424242;
+  font-style: italic;
+}
+
+#mod_tsOutput-explanation_no_divisions{
+  text-align: center;
+  color: #424242;
+  font-style: italic;
+}
+
+#help_data-help_variables {  /* SHORT VARIABLES - Tab Help*/
+  text-align: center;
+
 }
