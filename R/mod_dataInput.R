@@ -178,6 +178,29 @@ mod_data <- function(
     }
   })
 
+  # sweet alert to take visitors to sitedrought
+  shiny::observe({
+    shiny::validate(
+      shiny::need(input$display_daily, 'no type')
+    )
+    display_daily <- input$display_daily
+
+    if (display_daily == 'IFN plots') {
+      shinyWidgets::sendSweetAlert(
+        session = session,
+        title = translate_app('sweet_alert_IFN_plots_title', lang()),
+        text = shiny::tags$span(
+          shiny::tags$p(translate_app('sweet_alert_IFN_plots_text', lang())),
+          shiny::tags$br(),
+          shiny::tags$a(href = "https://laboratoriforestal.creaf.cat/sitedroughtapp", "SiteDrought App")
+        ),
+        type = "warn",
+        btn_label = translate_app("dismiss_btn", lang()),
+        html = TRUE
+      )
+    }
+  })
+
   ## returning inputs ####
   # reactive values to return and use in other modules
   data_reactives <- shiny::reactiveValues()

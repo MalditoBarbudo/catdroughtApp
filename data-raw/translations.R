@@ -86,6 +86,8 @@ tibble::tribble(
   # sweet alerts
   'sweet_alert_fileext_title', "Format de fitxer no acceptat", "File format not accepted", "Formato de archivo no aceptado",
   'sweet_alert_fileext_text', "L'arxiu carregat ha de ser un zip o gpkg", "Uploaded file must be a zip or a gpkg file", "El archivo cargado debe ser un zip o un gpkg",
+  'sweet_alert_IFN_plots_title', "Hi ha una nova app per explorar parcel·les disponible:", "A new sites explorer app is available:", "Hay una nueva app para explorar parcelas disponible:",
+  'sweet_alert_IFN_plots_text', "Si esteu interessats en el balanç d'aigua a nivell de parcel·la, visiteu", "If you are intereseted in water balance at the plot level, please visit", "Si estás interesado en el balance hídrico a nivel de parcela, visita",
 
   # progress
   "progress_raster", "Obtenció del ràster", "Retrieving the raster", "Obteniendo el ráster",
