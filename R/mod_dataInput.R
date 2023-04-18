@@ -54,8 +54,8 @@ mod_data <- function(
 
     # check dates available in the db and limit the imput to the first missing
     # one minus 1:
-    date_daily_choices_stripped <- date_daily_choices %>%
-      as.character() %>%
+    date_daily_choices_stripped <- date_daily_choices |>
+      as.character() |>
       stringr::str_remove_all('-')
 
     dates_available <- pool::dbGetQuery(
@@ -63,11 +63,11 @@ mod_data <- function(
         "SELECT * FROM information_schema.tables
         WHERE table_schema = 'daily'"
       )
-    ) %>%
-      dplyr::select(table_name) %>%
-      dplyr::filter(stringr::str_detect(table_name, 'catdrought_low')) %>%
-      dplyr::arrange() %>%
-      dplyr::pull(table_name) %>%
+    ) |>
+      dplyr::select(table_name) |>
+      dplyr::filter(stringr::str_detect(table_name, 'catdrought_low')) |>
+      dplyr::arrange() |>
+      dplyr::pull(table_name) |>
       stringr::str_extract('[0-9]+')
 
     first_missing <-
@@ -84,16 +84,16 @@ mod_data <- function(
     # evaporative surface: LAI
     # water balance: Infiltration, RunOff, DeepDrainage, Esoil, Eplant
     # drought stress: DDS
-    soil_moisture_vars <- c("Theta", "Psi", "REW") %>%
-      magrittr::set_names(translate_app(., lang_declared))
-    climate_vars <- c("PET", "Precipitation") %>%
-      magrittr::set_names(translate_app(., lang_declared))
-    evap_surface_vars <- c('LAI') %>%
-      magrittr::set_names(translate_app(., lang_declared))
-    fwb_vars <- c("Interception", "Infiltration", 'Runoff', 'DeepDrainage', 'Esoil', 'Eplant') %>%
-      magrittr::set_names(translate_app(., lang_declared))
-    drought_stress_vars <- c("DDS", "LMFC") %>%
-      magrittr::set_names(translate_app(., lang_declared))
+    soil_moisture_vars <- c("Theta", "Psi", "REW") |>
+      purrr::set_names(translate_app(c("Theta", "Psi", "REW"), lang_declared))
+    climate_vars <- c("PET", "Precipitation") |>
+      purrr::set_names(translate_app(c("PET", "Precipitation"), lang_declared))
+    evap_surface_vars <- c('LAI') |>
+      purrr::set_names(translate_app(c('LAI'), lang_declared))
+    fwb_vars <- c("Interception", "Infiltration", 'Runoff', 'DeepDrainage', 'Esoil', 'Eplant') |>
+      purrr::set_names(translate_app(c("Interception", "Infiltration", 'Runoff', 'DeepDrainage', 'Esoil', 'Eplant'), lang_declared))
+    drought_stress_vars <- c("DDS", "LMFC") |>
+      purrr::set_names(translate_app(c("DDS", "LMFC"), lang_declared))
 
     shiny::tagList(
       ## variable selectors ####
@@ -106,7 +106,9 @@ mod_data <- function(
           'Evaporative surface' = evap_surface_vars,
           'Water balance' = fwb_vars,
           'Drought stress' = drought_stress_vars
-        ) %>% magrittr::set_names(translate_app(names(.), lang_declared))
+        ) |> purrr::set_names(translate_app(c(
+          'Soil moisture', 'Climate', 'Evaporative surface', 'Water balance', 'Drought stress'
+        ), lang_declared))
       ),
 
       # date sel
@@ -122,8 +124,10 @@ mod_data <- function(
         ns('display_daily'), translate_app('display_daily_label', lang_declared),
         choices = c(
           'none', "Watersheds", "Counties", "Municipalities", "IFN plots", "file"
-        ) %>%
-          magrittr::set_names(translate_app(., lang_declared)),
+        ) |>
+          purrr::set_names(translate_app(c(
+            'none', "Watersheds", "Counties", "Municipalities", "IFN plots", "file"
+          ), lang_declared)),
         selected = 'none'
       ),
       shinyjs::hidden(
@@ -151,13 +155,6 @@ mod_data <- function(
           )
         )
       ) # end of hidden file selector
-      # # resoltion sel
-      # shiny::radioButtons(
-      #   ns('resolution_daily'), translate_app('resolution_daily_label', lang_declared),
-      #   choices = c('Smoothed', '1km', '200m') %>%
-      #     magrittr::set_names(translate_app(., lang_declared)),
-      #   selected = 'Smoothed'
-      # )
     )
 
   })

@@ -154,7 +154,7 @@ tibble::tribble(
   # 'mean_vae', "Volum amb Escorça Mitjan (VOB)", "Mean Over Bark Volume(VOB)", "Volúmen con Corteza Medio (VOB)",
 
   ## TODO continue translations thesaurus
-) %>%
+) |>
   {.} -> app_translations
 
 # usethis::use_data(app_translations, internal = TRUE, overwrite = TRUE)

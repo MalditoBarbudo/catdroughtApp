@@ -118,7 +118,7 @@ mod_mainData <- function(
       point_id = 'clicked_coords',
       long = clicked_pixel$lng,
       lat = clicked_pixel$lat
-    ) %>%
+    ) |>
       sf::st_as_sf(
         coords = c('long', 'lat'),
         crs = 4326
@@ -135,7 +135,7 @@ mod_mainData <- function(
     clicked_poly <- map_reactives$map_daily_shape_click
     polygon_object <- rlang::eval_tidy(
       rlang::sym(glue::glue("{tolower(data_reactives$display_daily)}_polygons"))
-    ) %>%
+    ) |>
       dplyr::filter(
         poly_id == clicked_poly$id
       )
@@ -154,7 +154,7 @@ mod_mainData <- function(
       point_id = clicked_marker$id,
       long = clicked_marker$lng,
       lat = clicked_marker$lat
-    ) %>%
+    ) |>
       sf::st_as_sf(
         coords = c('long', 'lat'),
         crs = 4326
@@ -198,11 +198,11 @@ mod_mainData <- function(
         user_file_sf <- sf::st_read(
           list.files(tmp_folder, '.shp', recursive = TRUE, full.names = TRUE),
           as_tibble = TRUE
-        ) %>%
+        ) |>
           sf::st_transform(4326)
       } else {
         # gpkg
-        user_file_sf <- sf::st_read(path_to_file) %>%
+        user_file_sf <- sf::st_read(path_to_file) |>
           sf::st_transform(4326)
       }
     }
@@ -285,26 +285,26 @@ mod_mainData <- function(
         df_for_ts <- catdroughtdb$get_current_time_series(
           sf_for_ts, var_daily
         )
-        dygraph_for_ts <- df_for_ts %>%
-          dplyr::select({{ var_daily }}) %>%
-          xts::as.xts(order.by = df_for_ts$day) %>%
+        dygraph_for_ts <- df_for_ts |>
+          dplyr::select({{ var_daily }}) |>
+          xts::as.xts(order.by = df_for_ts$day) |>
           dygraphs::dygraph(
             main = title_for_ts,
             ylab = glue::glue("{translate_app(var_daily, lang())}")
-          ) %>%
+          ) |>
           dygraphs::dySeries(
             var_daily, label = map_reactives$map_daily_marker_click$id,
             color = '#448714', strokeWidth = 2
-          ) %>%
-          dygraphs::dyAxis("x", drawGrid = FALSE) %>%
+          ) |>
+          dygraphs::dyAxis("x", drawGrid = FALSE) |>
           dygraphs::dyHighlight(
             highlightCircleSize = 5,
             highlightSeriesBackgroundAlpha = 1,
             hideOnMouseOut = TRUE
-          ) %>%
+          ) |>
           dygraphs::dyLegend(
             show = "follow", labelsSeparateLines = TRUE
-          ) %>%
+          ) |>
           dygraphs::dyOptions(
             axisLineWidth = 1.5,
             # drawGrid = FALSE,
@@ -329,8 +329,24 @@ mod_mainData <- function(
           # if features are points, build the dygraph for points, if features are
           # polygons, build the dygraph for polygons
           if ('mean' %in% names(df_for_ts)) {
+
+            dy_series_creator <- function(dygraph_obj, temp_data) {
+              series_index <- 1:((ncol(temp_data) - 1)/3)
+              for (serie in series_index) {
+                names_series <-
+                  names(temp_data)[c(serie+1+length(series_index), serie+1, serie+1+(length(series_index)*2))]
+                dygraph_obj <- dygraph_obj |>
+                  dygraphs::dySeries(
+                    names_series,
+                    label = stringr::str_remove_all(
+                      names(temp_data)[serie+1], '^[A-Za-z]+_'
+                    )
+                  )
+              }
+              dygraph_obj
+            }
             # polygons
-            temp_data <- df_for_ts %>%
+            temp_data <- df_for_ts |>
               dplyr::mutate(
                 low_es = mean - stddev,
                 high_es = mean + stddev,
@@ -340,77 +356,63 @@ mod_mainData <- function(
                 high_es = dplyr::if_else(
                   high_es > 0 & var_daily == 'Psi', 0, high_es
                 )
-              ) %>%
+              ) |>
               dplyr::select(
                 day, polygon_id, {{var_daily}} := mean, low_es, high_es
-              ) %>%
+              ) |>
               tidyr::pivot_wider(
                 names_from = 'polygon_id',
                 values_from = c(var_daily, 'low_es', 'high_es')
               )
 
-            dygraph_for_ts <- temp_data %>%
-              dplyr::select(-day) %>%
-              xts::as.xts(order.by = temp_data$day) %>%
+            dygraph_for_ts <- temp_data |>
+              dplyr::select(-day) |>
+              xts::as.xts(order.by = temp_data$day) |>
               dygraphs::dygraph(
                 main = title_for_ts,
                 ylab = glue::glue("{translate_app(var_daily, lang())}")
-              ) %>%
-              dygraphs::dyAxis("x", drawGrid = FALSE) %>%
+              ) |>
+              dygraphs::dyAxis("x", drawGrid = FALSE) |>
               dygraphs::dyHighlight(
                 highlightCircleSize = 5,
                 highlightSeriesBackgroundAlpha = 1,
                 hideOnMouseOut = TRUE
-              ) %>%
+              ) |>
               dygraphs::dyLegend(
                 show = "follow", labelsSeparateLines = TRUE
-              ) %>%
+              ) |>
               dygraphs::dyOptions(
                 axisLineWidth = 1.5,
                 # drawGrid = FALSE,
                 axisLineColor = '#647a8d', axisLabelColor = '#647a8d',
                 includeZero = TRUE, gridLineColor = '#647a8d'
-              ) %>% {
-                temp_dygraph <- .
-                series_index <- 1:((ncol(temp_data) - 1)/3)
-                for (serie in series_index) {
-                  names_series <-
-                    names(temp_data)[c(serie+1+length(series_index), serie+1, serie+1+(length(series_index)*2))]
-                  temp_dygraph <- temp_dygraph %>%
-                    dygraphs::dySeries(
-                      names_series,
-                      label = stringr::str_remove_all(
-                        names(temp_data)[serie+1], '^[A-Za-z]+_'
-                      )
-                    )
-                }
-                temp_dygraph
-              }
+              ) |>
+              dy_series_creator(temp_data)
 
           } else {
             # points
-            temp_data <- df_for_ts %>%
+            temp_data <- df_for_ts |>
               tidyr::pivot_wider(
                 names_from = 'point_id',
                 values_from = var_daily
               )
 
-            dygraph_for_ts <- temp_data %>%
-              dplyr::select(-day) %>%
-              xts::as.xts(order.by = temp_data$day) %>%
+            dygraph_for_ts <- temp_data |>
+              dplyr::select(-day) |>
+              xts::as.xts(order.by = temp_data$day) |>
               dygraphs::dygraph(
                 main = title_for_ts,
                 ylab = glue::glue("{translate_app(var_daily, lang())}")
-              ) %>%
-              dygraphs::dyAxis("x", drawGrid = FALSE) %>%
+              ) |>
+              dygraphs::dyAxis("x", drawGrid = FALSE) |>
               dygraphs::dyHighlight(
                 highlightCircleSize = 5,
                 highlightSeriesBackgroundAlpha = 1,
                 hideOnMouseOut = TRUE
-              ) %>%
+              ) |>
               dygraphs::dyLegend(
                 show = "follow", labelsSeparateLines = TRUE
-              ) %>%
+              ) |>
               dygraphs::dyOptions(
                 axisLineWidth = 1.5,
                 # drawGrid = FALSE,
@@ -434,7 +436,7 @@ mod_mainData <- function(
             sf_for_ts, var_daily
           )
 
-          dygraph_for_ts <- df_for_ts %>%
+          dygraph_for_ts <- df_for_ts |>
             dplyr::mutate(
               low_es = mean - stddev,
               high_es = mean + stddev,
@@ -444,30 +446,30 @@ mod_mainData <- function(
               high_es = dplyr::if_else(
                 high_es > 0 & var_daily == 'Psi', 0, high_es
               )
-            ) %>%
+            ) |>
             dplyr::select(
               low_es, {{var_daily}} := mean, high_es
-            ) %>%
-            xts::as.xts(order.by = df_for_ts$day) %>%
+            ) |>
+            xts::as.xts(order.by = df_for_ts$day) |>
             dygraphs::dygraph(
               main = title_for_ts,
               ylab = glue::glue("{translate_app(var_daily, lang())}")
-            ) %>%
-            dygraphs::dyAxis("x", drawGrid = FALSE) %>%
+            ) |>
+            dygraphs::dyAxis("x", drawGrid = FALSE) |>
             dygraphs::dyHighlight(
               highlightCircleSize = 5,
               highlightSeriesBackgroundAlpha = 1,
               hideOnMouseOut = TRUE
-            ) %>%
+            ) |>
             dygraphs::dyLegend(
               show = "follow", labelsSeparateLines = TRUE
-            ) %>%
+            ) |>
             dygraphs::dyOptions(
               axisLineWidth = 1.5,
               # drawGrid = FALSE,
               axisLineColor = '#647a8d', axisLabelColor = '#647a8d',
               includeZero = TRUE, gridLineColor = '#647a8d'
-            ) %>%
+            ) |>
             dygraphs::dySeries(
               c('low_es', var_daily, 'high_es'),
               label = map_reactives$map_daily_shape_click$id,
@@ -491,26 +493,26 @@ mod_mainData <- function(
         shiny::need(!inherits(df_for_ts, 'try-error'), 'no data in coords')
       )
 
-      dygraph_for_ts <- df_for_ts %>%
-        dplyr::select({{ var_daily }}) %>%
-        xts::as.xts(order.by = df_for_ts$day) %>%
+      dygraph_for_ts <- df_for_ts |>
+        dplyr::select({{ var_daily }}) |>
+        xts::as.xts(order.by = df_for_ts$day) |>
         dygraphs::dygraph(
           main = title_for_ts,
           ylab = glue::glue("{translate_app(var_daily, lang())}")
-        ) %>%
+        ) |>
         dygraphs::dySeries(
           c(var_daily), label = 'Point',
           color = '#448714', strokeWidth = 2
-        ) %>%
-        dygraphs::dyAxis("x", drawGrid = FALSE) %>%
+        ) |>
+        dygraphs::dyAxis("x", drawGrid = FALSE) |>
         dygraphs::dyHighlight(
           highlightCircleSize = 5,
           highlightSeriesBackgroundAlpha = 1,
           hideOnMouseOut = TRUE
-        ) %>%
+        ) |>
         dygraphs::dyLegend(
           show = "follow", labelsSeparateLines = TRUE
-        ) %>%
+        ) |>
         dygraphs::dyOptions(
           axisLineWidth = 1.5,
           # drawGrid = FALSE,

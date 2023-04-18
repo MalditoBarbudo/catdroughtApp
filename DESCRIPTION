@@ -18,7 +18,6 @@ Imports:
     glue,
     stringr,
     raster,
-    magrittr,
     dplyr,
     tidyr,
     purrr,
@@ -26,5 +25,7 @@ Imports:
     rlang,
     sf,
     waiter,
-    readr
-RoxygenNote: 7.1.2
+    readr,
+    terra,
+    stars
+RoxygenNote: 7.2.3
