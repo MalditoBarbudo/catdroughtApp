@@ -70,17 +70,6 @@ mod_mainData <- function(
     )
 
     waiter_map$show()
-    # waiter_map$update(
-    #   html = shiny::tagList(
-    #     hostess_raster$get_loader(
-    #       svg = 'images/hostess_image.svg',
-    #       progress_type = 'fill',
-    #       fill_direction = 'btt'
-    #     ),
-    #     shiny::h3(translate_app("progress_raster", lang())),
-    #     shiny::p(translate_app("progress_detail_raster", lang()))
-    #   )
-    # )
     hostess_raster$start()
     on.exit(hostess_raster$close(), add = TRUE)
     on.exit(waiter_map$hide(), add = TRUE)
@@ -89,7 +78,8 @@ mod_mainData <- function(
     date_sel <- as.character(data_reactives$date_daily)
 
     # raster_res
-    raster_res <- catdroughtdb$get_raster(date_sel, 'raster')
+    raster_res <- catdroughtdb$get_raster(date_sel, 'stars')
+
     return(raster_res)
   })
 

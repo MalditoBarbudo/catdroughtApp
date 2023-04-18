@@ -51,7 +51,7 @@ mod_map <- function(
     raster_daily <- main_data_reactives$raster_selected_daily
     var_daily <- data_reactives$var_daily
 
-    leaflet_raster <- raster_daily[[var_daily]]
+    leaflet_raster <- raster_daily[var_daily]
 
     palette <- leaflet::colorNumeric(
       palette = palettes_dictionary[[var_daily]][['pal']],
@@ -59,7 +59,7 @@ mod_map <- function(
       #   palettes_dictionary[[var_daily]][['min']],
       #   palettes_dictionary[[var_daily]][['max']]
       # ),
-      domain = raster::values(leaflet_raster),
+      domain = leaflet_raster[[1]] |> as.numeric(),
       na.color = 'transparent',
       reverse = palettes_dictionary[[var_daily]][['rev']]
     )
@@ -71,7 +71,7 @@ mod_map <- function(
       #   palettes_dictionary[[var_daily]][['min']],
       #   palettes_dictionary[[var_daily]][['max']]
       # ),
-      domain = raster::values(leaflet_raster),
+      domain = leaflet_raster[[1]] |> as.numeric(),
       na.color = 'transparent',
       reverse = !palettes_dictionary[[var_daily]][['rev']]
     )
@@ -120,11 +120,11 @@ mod_map <- function(
         options = leaflet::layersControlOptions(collapsed = FALSE, autoZIndex = FALSE)
       ) |>
       leaflet::addRasterImage(
-        leaflet_raster, project = FALSE, group = 'raster',
+        terra::rast(leaflet_raster), project = FALSE, group = 'raster',
         colors = palette, opacity = 1
       ) |>
       leaflet::addLegend(
-        pal = legend_palette, values = raster::values(leaflet_raster),
+        pal = legend_palette, values = leaflet_raster[[1]] |> as.numeric(),
         title = translate_app(var_daily, lang()),
         position = 'bottomright', opacity = 1,
         labFormat = leaflet::labelFormat(

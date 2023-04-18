@@ -75,9 +75,9 @@ mod_save <- function(
       # data length
       result_data <- main_data_reactives$raster_selected_daily
 
-      raster::writeRaster(
-        result_data, filename = file,
-        format = 'GTiff', overwrite = TRUE
+      terra::writeRaster(
+        terra::rast(result_data), filename = file,
+        filetype = 'GTiff', overwrite = TRUE
       )
     }
   )
