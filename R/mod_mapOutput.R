@@ -26,6 +26,8 @@ mod_mapOutput <- function(id) {
 #' @param parent_session session object to change active tab
 #' @param lang lang selected
 #'
+#' @importFrom terra has.RGB
+#'
 #' @export
 #'
 #' @rdname mod_mapOutput
@@ -34,6 +36,8 @@ mod_map <- function(
   data_reactives, main_data_reactives,
   parent_session, lang
 ) {
+
+  attachNamespace("terra")
 
   ## map output ####
   output$map_daily <- leaflet::renderLeaflet({

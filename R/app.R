@@ -1,5 +1,7 @@
 #' function to launch the catdrought app
 #'
+#' @importFrom terra has.RGB
+#'
 #' @export
 catdrought_app <- function() {
 
@@ -160,6 +162,17 @@ $(document).on('shiny:disconnected', function(event) {
     lang <- shiny::reactive({
       input$lang
     })
+
+    # send an alarm when loading app or changes langs
+    shiny::observeEvent(
+      lang(),
+      {
+        shinyWidgets::show_alert(
+          title = translate_app('under_construction_title', lang()),
+          text = translate_app('under_construction_text', lang())
+        )
+      }
+    )
 
     # modules ####
     # data inputs
