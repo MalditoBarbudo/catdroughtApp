@@ -88,7 +88,7 @@ tibble::tribble(
   'sweet_alert_fileext_text', "L'arxiu carregat ha de ser un zip o gpkg", "Uploaded file must be a zip or a gpkg file", "El archivo cargado debe ser un zip o un gpkg",
   'sweet_alert_IFN_plots_title', "Hi ha una nova app per explorar parcel·les disponible:", "A new sites explorer app is available:", "Hay una nueva app para explorar parcelas disponible:",
   'sweet_alert_IFN_plots_text', "Si esteu interessats en el balanç d'aigua a nivell de parcel·la, visiteu", "If you are intereseted in water balance at the plot level, please visit", "Si estás interesado en el balance hídrico a nivel de parcela, visita",
-  "under_construction_title", "Meteoland App està en manteniment.", "Meteoland App is under maintenance.", "Meteoland App está bajo mantenimiento.",
+  "under_construction_title", "CatDrought App està en manteniment.", "CatDrought App is under maintenance.", "CatDrought App está bajo mantenimiento.",
   "under_construction_text", "Algunes funcionalitats i dades poden faltar temporalment. Es poden produir errors (pantalles grises) en consultar les dades que falten.", "Some functionality, data can be temporally missing. Errors (gray screens) can happen when consulting missing data.", "Alguna funcionalidad o datos pueden faltar temporalmente. Pueden ocurrir errores (pantallazo gris) al consultar estos datos faltantes.",
 
   # progress
