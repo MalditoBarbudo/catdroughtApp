@@ -49,13 +49,13 @@ $(document).on('shiny:disconnected', function(event) {
     shiny::tags$head(
       # js script,
       shiny::tags$script(keep_alive_script),
-      # custom css
-      shiny::includeCSS(
-        system.file('resources', 'catdrought.css', package = 'catdroughtApp')
-      ),
       # corporative image css
       shiny::includeCSS(
-        system.file('resources', 'corp_image.css', package = 'catdroughtApp')
+        system.file('apps_css', 'corp_image.css', package = 'lfcdata')
+      ),
+      # custom css
+      shiny::includeCSS(
+        system.file('apps_css', 'catdrought.css', package = 'lfcdata')
       )
     ),
 
