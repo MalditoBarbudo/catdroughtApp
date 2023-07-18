@@ -89,7 +89,7 @@ tibble::tribble(
   'sweet_alert_IFN_plots_title', "Hi ha una nova app per explorar parcel·les disponible:", "A new sites explorer app is available:", "Hay una nueva app para explorar parcelas disponible:",
   'sweet_alert_IFN_plots_text', "Si esteu interessats en el balanç d'aigua a nivell de parcel·la, visiteu", "If you are intereseted in water balance at the plot level, please visit", "Si estás interesado en el balance hídrico a nivel de parcela, visita",
   "under_construction_title", "CatDrought App està en manteniment.", "CatDrought App is under maintenance.", "CatDrought App está bajo mantenimiento.",
-  "under_construction_text", "Hem trobat un problema a la base de dades i estem treballant per resoldre'l. Les dades a partir del 20 de maig de 2023 no estan disponibles en aquests moments.", "We've encountered a problem within the database and we are working is solving it. Data starting from 20th May 2023 is not available at the moment.", "Hemos encontrado un problema dentro de la base de datos y estamos trabajando para solucionarlo. Los datos a partir del 20 de mayo de 2023 no están disponibles en este momento.",
+  "under_construction_text", "Hem trobat un problema a la base de dades i estem treballant per resoldre'l. Les dades a partir del 10 de maig de 2023 no estan disponibles en aquests moments.", "We've encountered a problem within the database and we are working is solving it. Data starting from 10th May 2023 is not available at the moment.", "Hemos encontrado un problema dentro de la base de datos y estamos trabajando para solucionarlo. Los datos a partir del 10 de mayo de 2023 no están disponibles en este momento.",
 
   # progress
   "progress_raster", "Obtenció del ràster", "Retrieving the raster", "Obteniendo el ráster",
