@@ -114,10 +114,10 @@ mod_data <- function(
       # date sel
       shiny::dateInput(
         ns('date_daily'), translate_app('date_daily_label', lang_declared),
-        # value = date_daily_choices[length(date_daily_choices)],
-        # max = date_daily_choices[length(date_daily_choices)],
-        value = "2023/05/10",
-        max = "2023/05/10",
+        value = date_daily_choices[length(date_daily_choices)],
+        max = date_daily_choices[length(date_daily_choices)],
+        # value = "2023/05/10",
+        # max = "2023/05/10",
         min = date_daily_choices[1],
         weekstart = 1, language = dates_lang
       ),
