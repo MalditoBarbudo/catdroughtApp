@@ -84,7 +84,7 @@ RPostgres::dbExecute(conn, sql_guest_activation_5)
 RPostgres::dbExecute(conn, sql_guest_activation_6)
 
 # postgis extension
-rpostgis::pgPostGIS(conn, topology = TRUE, sfcgal = TRUE)
+rpostgis::pgPostGIS(conn, topology = TRUE, sfcgal = TRUE, raster = TRUE)
 
 # create original tables
 drop_table_query_high <- glue::glue_sql(
@@ -95,9 +95,9 @@ drop_table_query_low <- glue::glue_sql(
   .con = conn,
   "DROP TABLE IF EXISTS daily.catdrought_low CASCADE;"
 )
-drop_table_query_smooth <- glue::glue_sql(
+drop_table_query_pngs <- glue::glue_sql(
   .con = conn,
-  "DROP TABLE IF EXISTS daily.catdrought_smooth CASCADE;"
+  "DROP TABLE IF EXISTS daily.pngs CASCADE;"
 )
 
 create_table_query_high <- glue::glue_sql(
@@ -124,14 +124,20 @@ create_table_query_low <- glue::glue_sql(
    "
 )
 
-create_table_query_smooth <- glue::glue_sql(
+create_table_query_pngs <- glue::glue_sql(
   .con = conn,
   "
-   CREATE TABLE daily.catdrought_smooth (
-       id serial NOT NULL PRIMARY KEY,
-       rid int NOT NULL,
-       day date NOT NULL,
-       rast raster
+   CREATE TABLE daily.pngs (
+       date character(8),
+       var varchar(15),
+       palette_selected varchar(15),
+       base64_string text,
+       left_ext numeric,
+       down_ext numeric,
+       right_ext numeric,
+       up_ext numeric,
+       min_value numeric,
+       max_value numeric
    );
   "
 )
@@ -140,8 +146,8 @@ pool::dbExecute(conn, drop_table_query_high)
 pool::dbExecute(conn, create_table_query_high)
 pool::dbExecute(conn, drop_table_query_low)
 pool::dbExecute(conn, create_table_query_low)
-pool::dbExecute(conn, drop_table_query_smooth)
-pool::dbExecute(conn, create_table_query_smooth)
+pool::dbExecute(conn, drop_table_query_pngs)
+pool::dbExecute(conn, create_table_query_pngs)
 
 
 RPostgres::dbDisconnect(conn)
