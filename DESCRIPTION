@@ -10,7 +10,6 @@ LazyData: true
 Imports: 
     shiny,
     shinyjs,
-    leaflet,
     dygraphs,
     xts,
     shinyWidgets,
@@ -27,5 +26,8 @@ Imports:
     waiter,
     readr,
     terra,
-    stars
+    stars,
+    mapdeck,
+    colourvalues,
+    jsonlite
 RoxygenNote: 7.2.3

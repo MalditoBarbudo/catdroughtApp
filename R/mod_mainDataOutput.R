@@ -75,10 +75,12 @@ mod_mainData <- function(
     on.exit(waiter_map$hide(), add = TRUE)
 
     # date
-    date_sel <- as.character(data_reactives$date_daily)
+    date_sel <- as.character(data_reactives$date_daily) |>
+      stringr::str_remove_all("-")
 
     # raster_res
-    raster_res <- catdroughtdb$get_raster(date_sel, 'stars')
+    # raster_res <- catdroughtdb$get_raster(date_sel, 'stars')
+    raster_res <- catdroughtdb$get_pngs(date_sel)
 
     return(raster_res)
   })
@@ -100,10 +102,10 @@ mod_mainData <- function(
   map_click_sf_builder <- shiny::reactive({
 
     shiny::validate(
-      shiny::need(map_reactives$map_daily_click, 'no map click')
+      shiny::need(map_reactives$map_daily_shape_click, 'no map click')
     )
 
-    clicked_pixel <- map_reactives$map_daily_click
+    clicked_pixel <- map_reactives$map_daily_shape_click
     point_sel <- tibble::tibble(
       point_id = 'clicked_coords',
       long = clicked_pixel$lng,
@@ -119,7 +121,7 @@ mod_mainData <- function(
 
   map_shape_sf_builder <- shiny::reactive({
     shiny::validate(
-      shiny::need(map_reactives$map_daily_shape_click, 'no map click')
+      shiny::need(map_reactives$map_daily_shape_id, 'no shape click')
     )
 
     clicked_poly <- map_reactives$map_daily_shape_click
@@ -472,8 +474,8 @@ mod_mainData <- function(
       # bare map clicks
       sf_for_ts <- map_click_sf_builder()
       title_for_ts <- glue::glue(
-        "[{round(map_reactives$map_daily_click$lng, 3)} long,",
-        " {round(map_reactives$map_daily_click$lat, 3)} lat]"
+        "[{round(map_reactives$map_daily_shape_click$lng, 3)} long,",
+        " {round(map_reactives$map_daily_shape_click$lat, 3)} lat]"
       )
       df_for_ts <- try(catdroughtdb$get_current_time_series(
         sf_for_ts, var_daily

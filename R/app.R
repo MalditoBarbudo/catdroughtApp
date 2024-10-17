@@ -177,6 +177,9 @@ $(document).on('shiny:disconnected', function(event) {
       input$lang
     })
 
+    ## mapbox token
+    mapdeck::set_token(Sys.getenv("MAPBOX_TOKEN"))
+
     ###### Maintenance notice
     # send an alarm when loading app or changes langs
     # shiny::observeEvent(

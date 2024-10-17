@@ -125,10 +125,10 @@ mod_data <- function(
       shiny::selectInput(
         ns('display_daily'), translate_app('display_daily_label', lang_declared),
         choices = c(
-          'none', "Watersheds", "Counties", "Municipalities", "IFN plots", "file"
+          'none', "Watersheds", "Counties", "Municipalities", "file"
         ) |>
           purrr::set_names(translate_app(c(
-            'none', "Watersheds", "Counties", "Municipalities", "IFN plots", "file"
+            'none', "Watersheds", "Counties", "Municipalities", "file"
           ), lang_declared)),
         selected = 'none'
       ),
