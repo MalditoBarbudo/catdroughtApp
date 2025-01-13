@@ -45,6 +45,9 @@ tibble::tribble(
   '1km', "1km", "1km", "1km",
   '200m', "200m", "200m", "200m",
 
+  # 3d map
+  'using_3d', "Per modificar l'angle de visió mantenir apretat Ctrl mentre s'arrossega amb el ratolí", 'To modify the viewing angle, hold down Ctrl while dragging with the mouse', 'Para modificar el ángulo de visión mantener apretado Ctrl mientras se arrastra con el ratón',
+
   # map translations
   'Relief', 'Relleu', 'Relief', 'Relieve',
   'Imagery', 'Satèl·lit', 'Imagery', 'Satélite',

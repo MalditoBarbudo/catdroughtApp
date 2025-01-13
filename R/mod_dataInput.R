@@ -156,7 +156,9 @@ mod_data <- function(
             )
           )
         )
-      ) # end of hidden file selector
+      ), # end of hidden file selector
+      shiny::br(),
+      shiny::p(translate_app('using_3d', lang()))
     )
 
   })
