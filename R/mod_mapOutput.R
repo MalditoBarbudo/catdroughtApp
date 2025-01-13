@@ -92,14 +92,7 @@ mod_map <- function(
     
     if (display_daily == "none") {
       mapdeck::mapdeck_update(map_id = session$ns("map_daily")) |>
-        mapdeck::clear_bitmap(layer_id = "daily_raster") |>
         mapdeck::clear_polygon(layer_id = "daily_polys") |>
-        mapdeck::add_polygon(
-          data = watersheds_polygons, layer_id = "daily_polys",
-          fill_opacity = 0,
-          legend = legend_js,
-          update_view = FALSE, focus_layer = FALSE
-        ) |>
         mapdeck::add_bitmap(
           image = raster_daily$base64_string, layer_id = "daily_raster",
           bounds = c(
@@ -108,11 +101,10 @@ mod_map <- function(
           ),
           update_view = FALSE, focus_layer = FALSE,
           transparent_colour = "#00000000"
-        )
+        ) |>
+        mapdeck::add_legend(legend = legend_js, layer_id = "custom_legend")
     } else {
       mapdeck::mapdeck_update(map_id = session$ns("map_daily")) |>
-        mapdeck::clear_bitmap(layer_id = "daily_raster") |>
-        mapdeck::clear_polygon(layer_id = "daily_polys") |>
         mapdeck::add_bitmap(
           image = raster_daily$base64_string, layer_id = "daily_raster",
           bounds = c(
@@ -128,9 +120,9 @@ mod_map <- function(
           fill_opacity = 0,
           stroke_colour = "#FF0000FF", stroke_width = 200,
           auto_highlight = TRUE, highlight_colour = "#FDF5EB80",
-          legend = legend_js,
           update_view = FALSE, focus_layer = FALSE
-        )
+        ) |>
+        mapdeck::add_legend(legend = legend_js, layer_id = "custom_legend")
     }
 
   })
