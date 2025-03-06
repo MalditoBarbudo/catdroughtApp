@@ -5,3 +5,4 @@ data-raw/temp_updated.R
 data-raw/partitioned_tables_for_catdrought.R
 data-raw/shapefiles
 .Rhistory
+.vscode

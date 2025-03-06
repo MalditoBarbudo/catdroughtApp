@@ -26,6 +26,31 @@ $(document).on('shiny:disconnected', function(event) {
 
 
 
+  matomo_script <- shiny::HTML(
+    "var _paq = window._paq = window._paq || [];
+_paq.push(['trackPageView']);
+_paq.push(['enableLinkTracking']);
+(function() {
+  var u='https://stats-emf.creaf.cat/';
+  _paq.push(['setTrackerUrl', u+'matomo.php']);
+  _paq.push(['setSiteId', '6']);
+  var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];
+  g.async=true; g.src=u+'matomo.js'; s.parentNode.insertBefore(g,s);
+})();
+
+// Event Tracking Code
+$(document).on('shiny:inputchanged', function(event) {
+  if (/^mod_data*/.test(event.name)) {
+    _paq.push(['trackEvent', 'dataInputs', event.name, event.value, 1, {dimension1: event.value}]);
+  }
+  if (/^mod_save*/.test(event.name)) {
+    _paq.push(['trackEvent', 'saveInputs', event.name, event.value, 2, {dimension1: event.value}]);
+  }
+});"
+  )
+
+
+
   ### Language input ###########################################################
   shiny::addResourcePath(
     'images', system.file('resources', 'images', package = 'catdroughtApp')
@@ -48,6 +73,7 @@ $(document).on('shiny:disconnected', function(event) {
     # css
     shiny::tags$head(
       # js script,
+      shiny::tags$script(matomo_script),
       shiny::tags$script(keep_alive_script),
       # corporative image css
       shiny::includeCSS(
