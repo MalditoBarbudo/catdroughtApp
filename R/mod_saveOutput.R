@@ -75,11 +75,10 @@ mod_save <- function(
       # data length
       # result_data <- main_data_reactives$raster_selected_daily
       date_daily <- as.character(data_reactives$date_daily)
-      result_data <- catdroughtdb$get_raster(date_daily, 'raster')
-      terra::writeRaster(
-        terra::rast(result_data), filename = file,
-        filetype = 'GTiff', overwrite = TRUE
-      )
+      catdroughtdb$get_raster(date_daily, 'raster') |>
+        terra::writeRaster(
+          filename = file, filetype = 'GTiff', overwrite = TRUE
+        )
     }
   )
 
