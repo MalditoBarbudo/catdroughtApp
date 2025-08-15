@@ -28,7 +28,7 @@ mod_saveOutput <- function(id) {
 #' @rdname mod_saveOutput
 mod_save <- function(
   input, output, session,
-  main_data_reactives, data_reactives,
+  main_data_reactives, data_reactives, catdroughtdb,
   lang
 ) {
 
@@ -74,7 +74,7 @@ mod_save <- function(
 
       # data length
       # result_data <- main_data_reactives$raster_selected_daily
-      date_daily <- data_reactives$date_daily
+      date_daily <- as.character(data_reactives$date_daily)
       result_data <- catdroughtdb$get_raster(date_daily, 'raster')
       terra::writeRaster(
         terra::rast(result_data), filename = file,

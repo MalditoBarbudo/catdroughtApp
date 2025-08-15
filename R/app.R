@@ -245,7 +245,7 @@ $(document).on('shiny:inputchanged', function(event) {
     # save
     shiny::callModule(
       mod_save, 'mod_saveOutput',
-      main_data_reactives, data_reactives,
+      main_data_reactives, data_reactives, catdroughtdb,
       lang
     )
     # technical specifications module
