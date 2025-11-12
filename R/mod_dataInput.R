@@ -92,8 +92,8 @@ mod_data <- function(
       purrr::set_names(translate_app(c('LAI'), lang_declared))
     fwb_vars <- c("Interception", "Infiltration", 'Runoff', 'DeepDrainage', 'Esoil', 'Eplant') |>
       purrr::set_names(translate_app(c("Interception", "Infiltration", 'Runoff', 'DeepDrainage', 'Esoil', 'Eplant'), lang_declared))
-    drought_stress_vars <- c("DDS", "LMFC") |>
-      purrr::set_names(translate_app(c("DDS", "LMFC"), lang_declared))
+    drought_stress_vars <- c("DDS", "LFMC") |>
+      purrr::set_names(translate_app(c("DDS", "LFMC"), lang_declared))
 
     shiny::tagList(
       ## variable selectors ####

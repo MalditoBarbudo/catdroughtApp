@@ -19,7 +19,7 @@ palettes_dictionary <- list(
   Eplant = list(min = 0, max = 5, pal = viridis::cividis(100), rev = TRUE),
 
   DDS = list(min = 0, max = 1, pal = viridis::rocket(100), rev = FALSE),
-  LMFC = list(min = 0, max = 365, pal = viridis::rocket(100), rev = TRUE)
+  LFMC = list(min = 0, max = 365, pal = viridis::rocket(100), rev = TRUE)
   # NetPrec = list(min = 0, max = 100, pal = viridis::cividis(100), rev = TRUE),
   # NDD = list(min = 0, max = 1, pal = viridis::inferno(100), rev = TRUE)
 )
